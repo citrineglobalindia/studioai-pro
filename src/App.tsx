@@ -11,6 +11,7 @@ import ProjectDetailPage from "./pages/ProjectDetailPage";
 import TeamPage from "./pages/TeamPage";
 import InvoicesPage from "./pages/InvoicesPage";
 import LeadsPage from "./pages/LeadsPage";
+import CalendarPage from "./pages/CalendarPage";
 import { UserPlus, Users, FileText, CalendarDays, Zap, CreditCard, Briefcase, Image, BookImage, MessageSquare, Megaphone, BarChart3, Bot, Sparkles, Settings } from "lucide-react";
 
 const queryClient = new QueryClient();
@@ -28,7 +29,7 @@ const App = () => (
           <Route path="/quotations" element={<PlaceholderPage title="Quotations & Packages" description="Create photography packages, send quotations and track approvals." icon={FileText} />} />
           <Route path="/projects" element={<ProjectsPage />} />
           <Route path="/projects/:id" element={<ProjectDetailPage />} />
-          <Route path="/calendar" element={<PlaceholderPage title="Calendar" description="Schedule and manage shoots, team assignments and availability." icon={CalendarDays} />} />
+          <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/tasks" element={<PlaceholderPage title="Tasks" description="Assign and track tasks for photographers, editors and team members." icon={Zap} />} />
           <Route path="/team" element={<TeamPage />} />
           <Route path="/invoices" element={<InvoicesPage />} />
