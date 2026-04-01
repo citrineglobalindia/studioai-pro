@@ -137,6 +137,11 @@ export const sampleProjects: WeddingProject[] = [
       { id: "se9", name: "Reception", date: "2026-04-28", location: "Banquet Hall", status: "upcoming", assignedTeam: [sampleTeamMembers[0], sampleTeamMembers[2]] },
     ],
     footage: [],
+    payments: [
+      { id: "pay5", projectId: "p2", type: "advance", label: "Booking Advance", amount: 100000, paidAmount: 100000, status: "paid", dueDate: "2026-03-15", paidDate: "2026-03-12", mode: "upi", invoiceNumber: "INV-2026-005" },
+      { id: "pay6", projectId: "p2", type: "milestone", label: "Before Wedding", amount: 100000, paidAmount: 0, status: "pending", dueDate: "2026-04-25", invoiceNumber: "INV-2026-006" },
+      { id: "pay7", projectId: "p2", type: "final", label: "Final Delivery", amount: 50000, paidAmount: 0, status: "pending", dueDate: "2026-05-28", invoiceNumber: "INV-2026-007" },
+    ],
     team: [sampleTeamMembers[0], sampleTeamMembers[1], sampleTeamMembers[2], sampleTeamMembers[3], sampleTeamMembers[6], sampleTeamMembers[7]],
     createdAt: "2026-03-10",
   },
