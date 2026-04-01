@@ -28,8 +28,8 @@ export function StatCard({ title, value, change, changeType = "neutral", icon: I
       {change && (
         <p className={cn(
           "text-xs mt-1",
-          changeType === "positive" && "text-emerald-400",
-          changeType === "negative" && "text-red-400",
+          changeType === "positive" && "text-green-400",
+          changeType === "negative" && "text-destructive",
           changeType === "neutral" && "text-muted-foreground",
         )}>
           {change}
