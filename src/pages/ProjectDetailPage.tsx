@@ -134,6 +134,7 @@ const ProjectDetailPage = () => {
             <TabsTrigger value="events">Sub-Events</TabsTrigger>
             <TabsTrigger value="team">Team</TabsTrigger>
             <TabsTrigger value="footage">Footage & Editing</TabsTrigger>
+            <TabsTrigger value="payments">Payments</TabsTrigger>
             <TabsTrigger value="delivery">Delivery</TabsTrigger>
           </TabsList>
 
