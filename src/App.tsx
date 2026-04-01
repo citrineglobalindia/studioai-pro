@@ -6,7 +6,10 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import { PlaceholderPage } from "./pages/PlaceholderPage";
-import { UserPlus, Users, FileText, FolderKanban, CalendarDays, Zap, UsersRound, CreditCard, Briefcase, Image, BookImage, MessageSquare, Megaphone, BarChart3, Bot, Sparkles, Settings } from "lucide-react";
+import ProjectsPage from "./pages/ProjectsPage";
+import ProjectDetailPage from "./pages/ProjectDetailPage";
+import TeamPage from "./pages/TeamPage";
+import { UserPlus, Users, FileText, CalendarDays, Zap, CreditCard, Briefcase, Image, BookImage, MessageSquare, Megaphone, BarChart3, Bot, Sparkles, Settings } from "lucide-react";
 
 const queryClient = new QueryClient();
 
