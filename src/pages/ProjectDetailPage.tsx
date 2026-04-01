@@ -1,6 +1,6 @@
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useParams, useNavigate } from "react-router-dom";
-import { sampleProjects } from "@/data/wedding-types";
+import { sampleProjects, type PaymentStatus, type PaymentType } from "@/data/wedding-types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -9,8 +9,29 @@ import { cn } from "@/lib/utils";
 import {
   ArrowLeft, CalendarDays, MapPin, Phone, IndianRupee,
   Camera, Video, Edit3, Users, CheckCircle2, Clock, AlertCircle,
-  Upload, Eye, Send,
+  Upload, Eye, Send, FileText, CreditCard, Banknote, Smartphone, Building2, Plus,
 } from "lucide-react";
+
+const paymentStatusConfig: Record<PaymentStatus, { label: string; icon: typeof Clock; class: string }> = {
+  paid: { label: "Paid", icon: CheckCircle2, class: "text-emerald-400 bg-emerald-500/20 border-emerald-500/30" },
+  pending: { label: "Pending", icon: Clock, class: "text-muted-foreground bg-muted border-border" },
+  overdue: { label: "Overdue", icon: AlertCircle, class: "text-red-400 bg-red-500/20 border-red-500/30" },
+  partial: { label: "Partial", icon: IndianRupee, class: "text-yellow-400 bg-yellow-500/20 border-yellow-500/30" },
+};
+
+const paymentTypeConfig: Record<PaymentType, { label: string; class: string }> = {
+  advance: { label: "Advance", class: "bg-primary/15 text-primary border-primary/30" },
+  milestone: { label: "Milestone", class: "bg-blue-500/15 text-blue-400 border-blue-500/30" },
+  final: { label: "Final", class: "bg-purple-500/15 text-purple-400 border-purple-500/30" },
+};
+
+const modeIcons: Record<string, typeof CreditCard> = {
+  upi: Smartphone,
+  "bank-transfer": Building2,
+  cash: Banknote,
+  cheque: FileText,
+  card: CreditCard,
+};
 
 const editStatusConfig: Record<string, { label: string; icon: typeof Clock; class: string }> = {
   pending: { label: "Pending", icon: Clock, class: "text-muted-foreground bg-muted" },
