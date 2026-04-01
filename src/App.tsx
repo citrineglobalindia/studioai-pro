@@ -30,40 +30,40 @@ import SettingsPage from "./pages/SettingsPage";
 const queryClient = new QueryClient();
 
 const App = () => (
-  <ThemeProvider>
-    <QueryClientProvider client={queryClient}>
+  <QueryClientProvider client={queryClient}>
+    <ThemeProvider>
       <TooltipProvider>
         <Toaster />
         <Sonner />
         <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/leads" element={<LeadsPage />} />
-          <Route path="/clients" element={<ClientsPage />} />
-          <Route path="/quotations" element={<QuotationsPage />} />
-          <Route path="/projects" element={<ProjectsPage />} />
-          <Route path="/projects/:id" element={<ProjectDetailPage />} />
-          <Route path="/calendar" element={<CalendarPage />} />
-          <Route path="/tasks" element={<TasksPage />} />
-          <Route path="/team" element={<TeamPage />} />
-          <Route path="/invoices" element={<InvoicesPage />} />
-          <Route path="/contracts" element={<ContractsPage />} />
-          <Route path="/gallery" element={<GalleryPage />} />
-          <Route path="/albums" element={<AlbumsPage />} />
-          <Route path="/portal" element={<PortalPage />} />
-          <Route path="/communications" element={<CommunicationsPage />} />
-          <Route path="/marketing" element={<MarketingPage />} />
-          <Route path="/analytics" element={<AnalyticsPage />} />
-          <Route path="/automation" element={<AutomationPage />} />
-          <Route path="/ai-assistant" element={<AIAssistantPage />} />
-          <Route path="/ai-selection" element={<AISelectionPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/leads" element={<LeadsPage />} />
+            <Route path="/clients" element={<ClientsPage />} />
+            <Route path="/quotations" element={<QuotationsPage />} />
+            <Route path="/projects" element={<ProjectsPage />} />
+            <Route path="/projects/:id" element={<ProjectDetailPage />} />
+            <Route path="/calendar" element={<CalendarPage />} />
+            <Route path="/tasks" element={<TasksPage />} />
+            <Route path="/team" element={<TeamPage />} />
+            <Route path="/invoices" element={<InvoicesPage />} />
+            <Route path="/contracts" element={<ContractsPage />} />
+            <Route path="/gallery" element={<GalleryPage />} />
+            <Route path="/albums" element={<AlbumsPage />} />
+            <Route path="/portal" element={<PortalPage />} />
+            <Route path="/communications" element={<CommunicationsPage />} />
+            <Route path="/marketing" element={<MarketingPage />} />
+            <Route path="/analytics" element={<AnalyticsPage />} />
+            <Route path="/automation" element={<AutomationPage />} />
+            <Route path="/ai-assistant" element={<AIAssistantPage />} />
+            <Route path="/ai-selection" element={<AISelectionPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
-  </ThemeProvider>
 );
 
 export default App;
