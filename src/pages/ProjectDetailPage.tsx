@@ -305,6 +305,89 @@ const ProjectDetailPage = () => {
             )}
           </TabsContent>
 
+          {/* PAYMENTS TAB */}
+          <TabsContent value="payments" className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="font-display font-semibold text-foreground">Payment Schedule</h2>
+              <Button variant="outline" size="sm" className="gap-1 text-xs">
+                <Plus className="h-3 w-3" /> Add Payment
+              </Button>
+            </div>
+
+            {project.payments.length === 0 ? (
+              <div className="rounded-lg bg-card border border-border p-8 text-center text-muted-foreground">
+                No payments scheduled yet. Add advance, milestone, or final payment entries.
+              </div>
+            ) : (
+              <>
+                {/* Payment summary bar */}
+                {(() => {
+                  const totalPaid = project.payments.reduce((s, p) => s + p.paidAmount, 0);
+                  const totalDue = project.payments.reduce((s, p) => s + p.amount, 0);
+                  const pct = totalDue > 0 ? Math.round((totalPaid / totalDue) * 100) : 0;
+                  return (
+                    <div className="rounded-lg bg-card border border-border p-4 flex items-center gap-4">
+                      <div className="flex-1">
+                        <div className="flex justify-between text-sm mb-2">
+                          <span className="text-muted-foreground">₹{totalPaid.toLocaleString("en-IN")} collected</span>
+                          <span className="font-medium text-foreground">₹{totalDue.toLocaleString("en-IN")} total</span>
+                        </div>
+                        <Progress value={pct} className="h-2" />
+                      </div>
+                      <span className="text-lg font-display font-bold text-primary">{pct}%</span>
+                    </div>
+                  );
+                })()}
+
+                <div className="space-y-3">
+                  {project.payments.map((payment) => {
+                    const sCfg = paymentStatusConfig[payment.status];
+                    const tCfg = paymentTypeConfig[payment.type];
+                    const StatusIcon = sCfg.icon;
+                    const ModeIcon = payment.mode ? modeIcons[payment.mode] || CreditCard : CreditCard;
+                    const isOverdue = payment.status !== "paid" && new Date(payment.dueDate) < new Date();
+
+                    return (
+                      <div key={payment.id} className="rounded-lg bg-card border border-border p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className={cn("h-10 w-10 rounded-lg flex items-center justify-center shrink-0", tCfg.class)}>
+                            <IndianRupee className="h-4 w-4" />
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <p className="text-sm font-medium text-foreground">{payment.label}</p>
+                              <Badge variant="outline" className={cn("text-[9px] px-1.5 py-0", tCfg.class)}>{tCfg.label}</Badge>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                              {payment.invoiceNumber && <span className="flex items-center gap-1"><FileText className="h-3 w-3" />{payment.invoiceNumber}</span>}
+                              <span className="flex items-center gap-1">
+                                <CalendarDays className="h-3 w-3" />
+                                Due {new Date(payment.dueDate).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                              </span>
+                              {payment.paidDate && (
+                                <span className="flex items-center gap-1">
+                                  <ModeIcon className="h-3 w-3" />
+                                  Paid {new Date(payment.paidDate).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-4 shrink-0">
+                          <p className="text-sm font-medium text-foreground">₹{payment.amount.toLocaleString("en-IN")}</p>
+                          <Badge variant="outline" className={cn("text-[10px] gap-1", isOverdue ? paymentStatusConfig.overdue.class : sCfg.class)}>
+                            <StatusIcon className="h-3 w-3" />
+                            {isOverdue ? "Overdue" : sCfg.label}
+                          </Badge>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+          </TabsContent>
+
           {/* DELIVERY TAB */}
           <TabsContent value="delivery" className="space-y-4">
             <h2 className="font-display font-semibold text-foreground">Client Delivery Status</h2>

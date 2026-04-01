@@ -191,6 +191,7 @@ export const sampleProjects: WeddingProject[] = [
     paidAmount: 0,
     subEvents: [],
     footage: [],
+    payments: [],
     team: [],
     createdAt: "2026-03-28",
   },
