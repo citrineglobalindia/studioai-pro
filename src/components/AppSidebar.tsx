@@ -61,13 +61,6 @@ const financeItems = [
 ];
 
 
-const growthItems = [
-  { title: "Communications", url: "/communications", icon: MessageSquare },
-  { title: "Marketing", url: "/marketing", icon: Megaphone },
-  { title: "Analytics", url: "/analytics", icon: BarChart3 },
-  { title: "Automation", url: "/automation", icon: Zap },
-];
-
 const aiItems = [
   { title: "AI Assistant", url: "/ai-assistant", icon: Bot },
   { title: "Smart Selection", url: "/ai-selection", icon: Sparkles },
@@ -90,7 +83,7 @@ const groups = [
   { label: "Sales CRM", items: salesItems },
   { label: "Operations", items: operationsItems },
   { label: "Finance", items: financeItems },
-  { label: "Growth", items: growthItems },
+  
   { label: "HR Module", items: hrItems },
   { label: "AI & Smart Tools", items: aiItems },
   { label: "System", items: systemItems },
