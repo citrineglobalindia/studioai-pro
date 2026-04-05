@@ -1,4 +1,3 @@
-import { DashboardLayout } from "@/components/DashboardLayout";
 import { sampleProjects, type Payment, type PaymentStatus, type PaymentType } from "@/data/wedding-types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -48,7 +47,7 @@ const InvoicesPage = () => {
   const overdueAmount = overduePayments.reduce((sum, p) => sum + (p.amount - p.paidAmount), 0);
 
   return (
-    <DashboardLayout>
+    
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -182,7 +181,7 @@ const InvoicesPage = () => {
           })}
         </div>
       </div>
-    </DashboardLayout>
+    
   );
 };
 

@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, subMonths, addMonths, isSameDay, isWeekend } from "date-fns";
-import { DashboardLayout } from "@/components/DashboardLayout";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Clock, LogIn, LogOut, ChevronLeft, ChevronRight, Users, Ban, TrendingDown, AlertTriangle, CheckCircle2, XCircle, Download, Palmtree, Send, Timer, Play, Square, Coffee, MapPin } from "lucide-react";
@@ -269,7 +268,7 @@ const HRAttendance = () => {
   }), { present: 0, absent: 0, halfDay: 0, leave: 0, lateIns: 0 });
 
   return (
-    <DashboardLayout>
+    
       <div className="space-y-4">
         {/* Desktop: Hero + Quick Stats side by side */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -866,7 +865,7 @@ const HRAttendance = () => {
           </motion.div>
         )}
       </div>
-    </DashboardLayout>
+    
   );
 };
 

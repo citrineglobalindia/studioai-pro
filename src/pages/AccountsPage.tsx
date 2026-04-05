@@ -1,5 +1,4 @@
 import { useState, useMemo } from "react";
-import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -91,7 +90,7 @@ const AccountsPage = () => {
   }, [search, statusFilter]);
 
   return (
-    <DashboardLayout>
+    
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -271,7 +270,7 @@ const AccountsPage = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </DashboardLayout>
+    
   );
 };
 

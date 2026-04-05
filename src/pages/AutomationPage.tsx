@@ -1,4 +1,3 @@
-import { DashboardLayout } from "@/components/DashboardLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Zap, Plus, Play, Pause, Clock, Mail, MessageSquare, Bell, CheckCircle, Calendar, Star } from "lucide-react";
@@ -49,7 +48,7 @@ export default function AutomationPage() {
   const totalRuns = automations.reduce((s, a) => s + a.runs, 0);
 
   return (
-    <DashboardLayout>
+    
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -108,6 +107,6 @@ export default function AutomationPage() {
           })}
         </div>
       </div>
-    </DashboardLayout>
+    
   );
 }

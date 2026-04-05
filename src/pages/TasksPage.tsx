@@ -1,4 +1,3 @@
-import { DashboardLayout } from "@/components/DashboardLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Zap, Plus, CheckCircle, Clock, AlertTriangle, User, Calendar } from "lucide-react";
@@ -54,7 +53,7 @@ export default function TasksPage() {
   const today = new Date("2026-04-01");
 
   return (
-    <DashboardLayout>
+    
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -113,6 +112,6 @@ export default function TasksPage() {
           })}
         </div>
       </div>
-    </DashboardLayout>
+    
   );
 }

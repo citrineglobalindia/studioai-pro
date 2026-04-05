@@ -1,4 +1,3 @@
-import { DashboardLayout } from "@/components/DashboardLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,7 +46,7 @@ export default function ContractsPage() {
   const pending = sampleContracts.filter((c) => ["sent", "viewed"].includes(c.status)).length;
 
   return (
-    <DashboardLayout>
+    
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -143,6 +142,6 @@ export default function ContractsPage() {
           })}
         </div>
       </div>
-    </DashboardLayout>
+    
   );
 }

@@ -1,5 +1,4 @@
 import { useState, useMemo } from "react";
-import { DashboardLayout } from "@/components/DashboardLayout";
 import { sampleProjects } from "@/data/wedding-types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -127,7 +126,7 @@ const CalendarPage = () => {
   const completedCount = thisMonthEvents.filter((e) => e.status === "completed").length;
 
   return (
-    <DashboardLayout>
+    
       <div className="max-w-7xl mx-auto space-y-5">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -271,7 +270,7 @@ const CalendarPage = () => {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    
   );
 };
 

@@ -1,4 +1,3 @@
-import { DashboardLayout } from "@/components/DashboardLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Image, Users, Trash2, Star, Copy, Eye, Upload, Zap, CheckCircle, AlertTriangle } from "lucide-react";
@@ -39,7 +38,7 @@ export default function AISelectionPage() {
   const totalBlurry = sampleBatches.reduce((s, b) => s + b.blurry, 0);
 
   return (
-    <DashboardLayout>
+    
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -146,6 +145,6 @@ export default function AISelectionPage() {
           })}
         </div>
       </div>
-    </DashboardLayout>
+    
   );
 }

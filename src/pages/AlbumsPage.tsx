@@ -1,4 +1,3 @@
-import { DashboardLayout } from "@/components/DashboardLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { BookImage, Plus, Eye, MessageSquare, Printer, Check, Clock, RefreshCw, Truck } from "lucide-react";
@@ -49,7 +48,7 @@ export default function AlbumsPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   return (
-    <DashboardLayout>
+    
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -128,6 +127,6 @@ export default function AlbumsPage() {
           })}
         </div>
       </div>
-    </DashboardLayout>
+    
   );
 }

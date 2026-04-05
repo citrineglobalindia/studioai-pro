@@ -1,6 +1,5 @@
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { DashboardLayout } from "@/components/DashboardLayout";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -56,7 +55,7 @@ const ProfilePage = () => {
   };
 
   return (
-    <DashboardLayout>
+    
       <div className="space-y-4 max-w-4xl mx-auto">
         {/* Profile Header Card */}
         <motion.div
@@ -328,7 +327,7 @@ const ProfilePage = () => {
           </div>
         </motion.div>
       </div>
-    </DashboardLayout>
+    
   );
 };
 

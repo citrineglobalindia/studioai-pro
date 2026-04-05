@@ -1,4 +1,3 @@
-import { DashboardLayout } from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,7 +19,7 @@ export default function SettingsPage() {
   });
 
   return (
-    <DashboardLayout>
+    
       <div className="max-w-4xl mx-auto space-y-6">
         <div>
           <h1 className="text-2xl font-display font-bold text-foreground">Settings</h1>
@@ -208,6 +207,6 @@ export default function SettingsPage() {
           </TabsContent>
         </Tabs>
       </div>
-    </DashboardLayout>
+    
   );
 }

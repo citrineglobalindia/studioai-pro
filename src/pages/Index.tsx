@@ -1,4 +1,3 @@
-import { DashboardLayout } from "@/components/DashboardLayout";
 import { StatCard } from "@/components/StatCard";
 import { Users, UserPlus, Camera, IndianRupee, TrendingUp, CalendarDays, AlertTriangle, Clock, CheckCircle, Film } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -59,7 +58,7 @@ const Index = () => {
   const navigate = useNavigate();
 
   return (
-    <DashboardLayout>
+    
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-end justify-between">
@@ -231,7 +230,7 @@ const Index = () => {
           ))}
         </div>
       </div>
-    </DashboardLayout>
+    
   );
 };
 
