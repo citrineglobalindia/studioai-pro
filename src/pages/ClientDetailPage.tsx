@@ -73,7 +73,10 @@ const eventStatusConfig: Record<string, { label: string; dot: string }> = {
 export default function ClientDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const client = sampleClients.find((c) => c.id === id);
+  const [addEventOpen, setAddEventOpen] = useState(false);
+  const clientData = sampleClients.find((c) => c.id === id);
+  const [events, setEvents] = useState<ClientEvent[]>(clientData?.events || []);
+  const client = clientData ? { ...clientData, events } : undefined;
 
   if (!client) {
     return (
