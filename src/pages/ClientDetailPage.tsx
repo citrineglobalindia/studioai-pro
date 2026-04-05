@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -7,11 +8,12 @@ import {
   ArrowLeft, CalendarDays, Sparkles, Heart, FileText,
   ChevronRight, PhoneCall, MessageSquare, Briefcase,
   Clock, Download, PenLine, Send, ExternalLink,
-  Receipt, CreditCard, PartyPopper, CheckCircle2, AlertCircle, Clock3,
+  Receipt, CreditCard, PartyPopper, CheckCircle2, AlertCircle, Clock3, Plus,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { sampleClients, statusConfig, type Client, type ClientActivity, type ClientInvoice, type ClientEvent } from "@/data/clients-data";
+import { AddEventSheet } from "@/components/AddEventSheet";
 
 const containerVariants = {
   hidden: {},
