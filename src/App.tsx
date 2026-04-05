@@ -15,6 +15,7 @@ import InvoicesPage from "./pages/InvoicesPage";
 import LeadsPage from "./pages/LeadsPage";
 import CalendarPage from "./pages/CalendarPage";
 import ClientsPage from "./pages/ClientsPage";
+import ClientDetailPage from "./pages/ClientDetailPage";
 import QuotationsPage from "./pages/QuotationsPage";
 import ContractsPage from "./pages/ContractsPage";
 import AIAssistantPage from "./pages/AIAssistantPage";
