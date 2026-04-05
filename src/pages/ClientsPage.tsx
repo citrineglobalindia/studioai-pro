@@ -17,6 +17,7 @@ import { useNavigate } from "react-router-dom";
 import { motion, useMotionValue, useTransform, animate, useInView } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { sampleClients, statusConfig, type Client } from "@/data/clients-data";
+import { AddClientSheet } from "@/components/AddClientSheet";
 
 const containerVariants = {
   hidden: {},
@@ -54,13 +55,15 @@ const AnimatedNumber = ({ value, delay = 0, prefix = "", suffix = "" }: { value:
 
 export default function ClientsPage() {
   const navigate = useNavigate();
+  const [clients, setClients] = useState<Client[]>(sampleClients);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterOpen, setFilterOpen] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
   const [sortBy, setSortBy] = useState<"name" | "spend" | "recent">("recent");
 
   const filtered = useMemo(() => {
-    let result = sampleClients.filter((c) => {
+    let result = clients.filter((c) => {
       const matchSearch = `${c.name} ${c.partnerName} ${c.city} ${c.email}`.toLowerCase().includes(search.toLowerCase());
       const matchStatus = filterStatus === "all" || c.status === filterStatus;
       return matchSearch && matchStatus;
@@ -69,12 +72,12 @@ export default function ClientsPage() {
     else if (sortBy === "name") result.sort((a, b) => a.name.localeCompare(b.name));
     else result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     return result;
-  }, [search, filterStatus, sortBy]);
+  }, [clients, search, filterStatus, sortBy]);
 
-  const totalLifetimeValue = sampleClients.reduce((s, c) => s + c.totalSpend, 0);
-  const totalPending = sampleClients.reduce((s, c) => s + c.pendingAmount, 0);
-  const activeCount = sampleClients.filter((c) => c.status === "active").length;
-  const vipCount = sampleClients.filter((c) => c.status === "vip").length;
+  const totalLifetimeValue = clients.reduce((s, c) => s + c.totalSpend, 0);
+  const totalPending = clients.reduce((s, c) => s + c.pendingAmount, 0);
+  const activeCount = clients.filter((c) => c.status === "active").length;
+  const vipCount = clients.filter((c) => c.status === "vip").length;
 
   const activeFilterCount = filterStatus !== "all" ? 1 : 0;
 
@@ -93,10 +96,10 @@ export default function ClientsPage() {
           </div>
           <div>
             <h1 className="text-xl sm:text-2xl font-display font-bold text-foreground">Clients</h1>
-            <p className="text-xs text-muted-foreground">{sampleClients.length} clients · ₹{(totalLifetimeValue / 100000).toFixed(1)}L lifetime value</p>
+            <p className="text-xs text-muted-foreground">{clients.length} clients · ₹{(totalLifetimeValue / 100000).toFixed(1)}L lifetime value</p>
           </div>
         </div>
-        <Button size="sm" className="gap-2 rounded-xl">
+        <Button size="sm" className="gap-2 rounded-xl" onClick={() => setAddOpen(true)}>
           <Plus className="h-4 w-4" /> Add Client
         </Button>
       </motion.div>
@@ -370,6 +373,13 @@ export default function ClientsPage() {
           <p className="text-sm text-muted-foreground mt-1">Try adjusting your search or filters</p>
         </div>
       )}
+
+      {/* Add Client Sheet */}
+      <AddClientSheet
+        open={addOpen}
+        onOpenChange={setAddOpen}
+        onAdd={(client) => setClients((prev) => [client, ...prev])}
+      />
     </motion.div>
   );
 }
