@@ -93,6 +93,9 @@ export function AddClientSheet({ open, onOpenChange, onAdd }: AddClientSheetProp
         },
       ],
       documents: [],
+      invoices: [],
+      payments: [],
+      events: [],
       createdAt: new Date().toISOString().slice(0, 10),
     };
 
