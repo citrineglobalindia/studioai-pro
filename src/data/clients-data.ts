@@ -15,6 +15,37 @@ export interface ClientDocument {
   size: string;
 }
 
+export interface ClientInvoice {
+  id: string;
+  invoiceNumber: string;
+  description: string;
+  amount: number;
+  status: "paid" | "due" | "overdue" | "partial";
+  issueDate: string;
+  dueDate: string;
+  paidAmount: number;
+}
+
+export interface ClientPayment {
+  id: string;
+  amount: number;
+  method: "UPI" | "Bank Transfer" | "Cash" | "Card" | "Cheque";
+  date: string;
+  reference?: string;
+  invoiceId?: string;
+  note?: string;
+}
+
+export interface ClientEvent {
+  id: string;
+  name: string;
+  date: string;
+  venue: string;
+  type: "mehendi" | "haldi" | "sangeet" | "wedding" | "reception" | "engagement" | "pre-wedding" | "other";
+  status: "upcoming" | "completed" | "in-progress";
+  notes?: string;
+}
+
 export interface Client {
   id: string;
   name: string;
