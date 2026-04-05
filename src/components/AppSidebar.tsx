@@ -1,5 +1,6 @@
 import {
   Camera,
+  Shield,
   Users,
   UserPlus,
   FolderKanban,
