@@ -10,6 +10,9 @@ import {
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger,
+} from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -22,8 +25,11 @@ import {
   Eye, PhoneCall, Pencil, Trash2, Bell, UserPlus,
   Sparkles, Users, TrendingUp, Target, ChevronDown,
   LayoutGrid, BarChart3, Clock, FileText, ExternalLink,
+  X, SlidersHorizontal, CalendarDays,
 } from "lucide-react";
 import { toast } from "sonner";
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 const stages: LeadStage[] = ["new", "contacted", "proposal-sent", "converted", "lost"];
 const teamMembers = ["Raj Patel", "Vikram Singh", "Neha Sharma", "Amit Verma"];
