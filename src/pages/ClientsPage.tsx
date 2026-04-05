@@ -55,9 +55,11 @@ const AnimatedNumber = ({ value, delay = 0, prefix = "", suffix = "" }: { value:
 
 export default function ClientsPage() {
   const navigate = useNavigate();
+  const [clients, setClients] = useState<Client[]>(sampleClients);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterOpen, setFilterOpen] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
   const [sortBy, setSortBy] = useState<"name" | "spend" | "recent">("recent");
 
   const filtered = useMemo(() => {
