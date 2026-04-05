@@ -17,6 +17,7 @@ import { useNavigate } from "react-router-dom";
 import { motion, useMotionValue, useTransform, animate, useInView } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { sampleClients, statusConfig, type Client } from "@/data/clients-data";
+import { AddClientSheet } from "@/components/AddClientSheet";
 
 const containerVariants = {
   hidden: {},
