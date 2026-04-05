@@ -17,13 +17,10 @@ import CalendarPage from "./pages/CalendarPage";
 import ClientsPage from "./pages/ClientsPage";
 import QuotationsPage from "./pages/QuotationsPage";
 import ContractsPage from "./pages/ContractsPage";
-import CommunicationsPage from "./pages/CommunicationsPage";
-import MarketingPage from "./pages/MarketingPage";
-import AnalyticsPage from "./pages/AnalyticsPage";
 import AIAssistantPage from "./pages/AIAssistantPage";
 import AISelectionPage from "./pages/AISelectionPage";
 import TasksPage from "./pages/TasksPage";
-import AutomationPage from "./pages/AutomationPage";
+
 import SettingsPage from "./pages/SettingsPage";
 import HRDashboard from "./pages/hr/HRDashboard";
 import HREmployees from "./pages/hr/HREmployees";
@@ -57,10 +54,6 @@ const App = () => (
                 <Route path="/team" element={<TeamPage />} />
                 <Route path="/invoices" element={<InvoicesPage />} />
                 <Route path="/contracts" element={<ContractsPage />} />
-                <Route path="/communications" element={<CommunicationsPage />} />
-                <Route path="/marketing" element={<MarketingPage />} />
-                <Route path="/analytics" element={<AnalyticsPage />} />
-                <Route path="/automation" element={<AutomationPage />} />
                 <Route path="/ai-assistant" element={<AIAssistantPage />} />
                 <Route path="/ai-selection" element={<AISelectionPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
