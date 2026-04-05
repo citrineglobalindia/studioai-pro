@@ -158,6 +158,18 @@ export function AppSidebar() {
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <NavLink
+                    to="/profile"
+                    className="flex items-center gap-3 px-4 py-2 text-sm text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-md transition-colors"
+                    activeClassName="bg-sidebar-accent text-primary font-medium"
+                  >
+                    <UserCog className="h-4 w-4 shrink-0" />
+                    {!collapsed && <span>Profile</span>}
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <NavLink
                     to="/settings"
                     className="flex items-center gap-3 px-4 py-2 text-sm text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-md transition-colors"
                     activeClassName="bg-sidebar-accent text-primary font-medium"
