@@ -1,5 +1,6 @@
 import {
   Camera,
+  Shield,
   Users,
   UserPlus,
   FolderKanban,
@@ -82,6 +83,7 @@ const hrItems = [
 const systemItems = [
   { title: "Notifications", url: "/notifications", icon: Bell },
   { title: "Accounts", url: "/accounts", icon: Wallet },
+  { title: "Access Control", url: "/access-control", icon: Shield },
 ];
 
 const groups = [

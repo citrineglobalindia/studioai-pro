@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { DashboardLayout } from "@/components/DashboardLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -49,7 +48,7 @@ const LeadsPage = () => {
   const convertedBudget = leads.filter((l) => l.stage === "converted").reduce((s, l) => s + (l.budget || 0), 0);
 
   return (
-    <DashboardLayout>
+    
       <div className="max-w-full mx-auto space-y-5">
         {/* Header */}
         <div className="flex items-center justify-between px-1">
@@ -136,7 +135,7 @@ const LeadsPage = () => {
           })}
         </div>
       </div>
-    </DashboardLayout>
+    
   );
 };
 

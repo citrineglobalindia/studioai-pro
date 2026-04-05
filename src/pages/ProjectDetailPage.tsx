@@ -1,4 +1,3 @@
-import { DashboardLayout } from "@/components/DashboardLayout";
 import { useParams, useNavigate } from "react-router-dom";
 import { sampleProjects, type PaymentStatus, type PaymentType } from "@/data/wedding-types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -62,11 +61,11 @@ const ProjectDetailPage = () => {
 
   if (!project) {
     return (
-      <DashboardLayout>
+      
         <div className="flex items-center justify-center min-h-[60vh]">
           <p className="text-muted-foreground">Project not found.</p>
         </div>
-      </DashboardLayout>
+      
     );
   }
 
@@ -79,7 +78,7 @@ const ProjectDetailPage = () => {
   const vendorTeam = project.team.filter((m) => m.type === "vendor");
 
   return (
-    <DashboardLayout>
+    
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-start gap-4">
@@ -427,7 +426,7 @@ const ProjectDetailPage = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </DashboardLayout>
+    
   );
 };
 

@@ -1,4 +1,3 @@
-import { DashboardLayout } from "@/components/DashboardLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -51,7 +50,7 @@ export default function GalleryPage() {
   const totalDelivered = sampleGalleries.filter((g) => ["delivered", "shared"].includes(g.status)).length;
 
   return (
-    <DashboardLayout>
+    
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -139,6 +138,6 @@ export default function GalleryPage() {
           })}
         </div>
       </div>
-    </DashboardLayout>
+    
   );
 }

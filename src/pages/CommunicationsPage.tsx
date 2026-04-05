@@ -1,4 +1,3 @@
-import { DashboardLayout } from "@/components/DashboardLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -235,7 +234,7 @@ export default function CommunicationsPage() {
   };
 
   return (
-    <DashboardLayout>
+    
       <div className="max-w-7xl mx-auto">
         <div className="mb-4 flex items-center justify-between">
           <div>
@@ -649,6 +648,6 @@ export default function CommunicationsPage() {
           </TabsContent>
         </Tabs>
       </div>
-    </DashboardLayout>
+    
   );
 }

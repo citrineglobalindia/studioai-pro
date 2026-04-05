@@ -1,4 +1,3 @@
-import { DashboardLayout } from "@/components/DashboardLayout";
 import { Badge } from "@/components/ui/badge";
 import { sampleTeamMembers } from "@/data/wedding-types";
 import { Camera, Video, Edit3, Users, Phone, Plus } from "lucide-react";
@@ -55,7 +54,7 @@ const TeamPage = () => {
   };
 
   return (
-    <DashboardLayout>
+    
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -99,7 +98,7 @@ const TeamPage = () => {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    
   );
 };
 

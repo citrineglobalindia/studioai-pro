@@ -1,5 +1,4 @@
 import { useState, useMemo } from "react";
-import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -101,7 +100,7 @@ const NotificationsPage = () => {
   };
 
   return (
-    <DashboardLayout>
+    
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -251,7 +250,7 @@ const NotificationsPage = () => {
           </DialogContent>
         </Dialog>
       </div>
-    </DashboardLayout>
+    
   );
 };
 

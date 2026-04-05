@@ -1,4 +1,3 @@
-import { DashboardLayout } from "@/components/DashboardLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Users, Eye, Image, FileText, CreditCard, Calendar, ExternalLink, Settings, Copy } from "lucide-react";
@@ -33,7 +32,7 @@ export default function PortalPage() {
   };
 
   return (
-    <DashboardLayout>
+    
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -106,6 +105,6 @@ export default function PortalPage() {
           ))}
         </div>
       </div>
-    </DashboardLayout>
+    
   );
 }

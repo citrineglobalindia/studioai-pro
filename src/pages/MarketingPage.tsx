@@ -1,4 +1,3 @@
-import { DashboardLayout } from "@/components/DashboardLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Megaphone, Plus, Send, Eye, Users, TrendingUp, Mail, MessageSquare, Target, Calendar, BarChart3 } from "lucide-react";
@@ -43,7 +42,7 @@ export default function MarketingPage() {
   const avgOpenRate = Math.round((sampleCampaigns.filter((c) => c.sent > 0).reduce((s, c) => s + (c.opened / c.sent) * 100, 0)) / sampleCampaigns.filter((c) => c.sent > 0).length);
 
   return (
-    <DashboardLayout>
+    
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -115,6 +114,6 @@ export default function MarketingPage() {
           })}
         </div>
       </div>
-    </DashboardLayout>
+    
   );
 }

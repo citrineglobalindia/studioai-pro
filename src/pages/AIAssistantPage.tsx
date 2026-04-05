@@ -1,4 +1,3 @@
-import { DashboardLayout } from "@/components/DashboardLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,7 +45,7 @@ export default function AIAssistantPage() {
   };
 
   return (
-    <DashboardLayout>
+    
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -107,6 +106,6 @@ export default function AIAssistantPage() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    
   );
 }

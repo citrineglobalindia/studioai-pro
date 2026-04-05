@@ -1,5 +1,4 @@
 import { useState, useMemo } from "react";
-import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -73,7 +72,7 @@ const HREmployees = () => {
 
   if (showAddForm) {
     return (
-      <DashboardLayout>
+      
         <div className="space-y-6">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" onClick={() => setShowAddForm(false)}>
@@ -86,12 +85,12 @@ const HREmployees = () => {
           </div>
           <AddEmployeeForm onSubmit={handleAdd} onCancel={() => setShowAddForm(false)} />
         </div>
-      </DashboardLayout>
+      
     );
   }
 
   return (
-    <DashboardLayout>
+    
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -202,7 +201,7 @@ const HREmployees = () => {
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
+    
   );
 };
 

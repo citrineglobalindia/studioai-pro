@@ -1,4 +1,3 @@
-import { DashboardLayout } from "@/components/DashboardLayout";
 import { BarChart3, TrendingUp, IndianRupee, Users, Camera, Calendar } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Area, AreaChart } from "recharts";
 
@@ -42,7 +41,7 @@ const avgConversion = Math.round(conversionTrend.reduce((s, c) => s + c.rate, 0)
 
 export default function AnalyticsPage() {
   return (
-    <DashboardLayout>
+    
       <div className="max-w-7xl mx-auto space-y-6">
         <div>
           <h1 className="text-2xl font-display font-bold text-foreground">Analytics & Reports</h1>
@@ -145,6 +144,6 @@ export default function AnalyticsPage() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    
   );
 }

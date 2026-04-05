@@ -1,4 +1,3 @@
-import { DashboardLayout } from "@/components/DashboardLayout";
 import { LucideIcon } from "lucide-react";
 import { Construction } from "lucide-react";
 
@@ -10,7 +9,7 @@ interface PlaceholderPageProps {
 
 export function PlaceholderPage({ title, description, icon: Icon = Construction }: PlaceholderPageProps) {
   return (
-    <DashboardLayout>
+    
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
         <div className="h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
           <Icon className="h-8 w-8 text-primary" />
@@ -21,6 +20,6 @@ export function PlaceholderPage({ title, description, icon: Icon = Construction 
           Coming Soon
         </span>
       </div>
-    </DashboardLayout>
+    
   );
 }
