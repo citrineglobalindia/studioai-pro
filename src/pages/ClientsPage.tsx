@@ -72,7 +72,7 @@ export default function ClientsPage() {
     else if (sortBy === "name") result.sort((a, b) => a.name.localeCompare(b.name));
     else result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     return result;
-  }, [search, filterStatus, sortBy]);
+  }, [clients, search, filterStatus, sortBy]);
 
   const totalLifetimeValue = clients.reduce((s, c) => s + c.totalSpend, 0);
   const totalPending = clients.reduce((s, c) => s + c.pendingAmount, 0);
