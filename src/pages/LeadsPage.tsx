@@ -43,8 +43,23 @@ const LeadsPage = () => {
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState("table");
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
-  const filtered = useMemo(() => {
+  const activeFilterCount = [
+    statusFilter !== "all" ? 1 : 0,
+    userFilter !== "all" ? 1 : 0,
+    dateFrom ? 1 : 0,
+    dateTo ? 1 : 0,
+  ].reduce((a, b) => a + b, 0);
+
+  const clearFilters = () => {
+    setStatusFilter("all");
+    setUserFilter("all");
+    setDateFrom("");
+    setDateTo("");
+  };
     return leads.filter((l) => {
       const matchSearch =
         l.name.toLowerCase().includes(search.toLowerCase()) ||
