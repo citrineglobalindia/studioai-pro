@@ -1,15 +1,31 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, subMonths, addMonths, isSameDay, isWeekend } from "date-fns";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Clock, LogIn, LogOut, ChevronLeft, ChevronRight, Users, Ban, TrendingDown, AlertTriangle, CheckCircle2, XCircle, Download, Palmtree, Send } from "lucide-react";
+import { Clock, LogIn, LogOut, ChevronLeft, ChevronRight, Users, Ban, TrendingDown, AlertTriangle, CheckCircle2, XCircle, Download, Palmtree, Send, Timer, Play, Square, Coffee, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 
-type TabType = "calendar" | "ledger" | "team" | "report" | "leave" | "holidays";
+type TabType = "calendar" | "clockin" | "ledger" | "team" | "report" | "leave" | "holidays";
+
+type ClockLog = {
+  id: string;
+  type: "checkin" | "checkout" | "break_start" | "break_end";
+  time: Date;
+  label: string;
+};
+
+const dailyLogs: { date: string; checkIn: string; checkOut: string; breakTime: string; totalHours: string; status: string }[] = [
+  { date: "Apr 4, 2026", checkIn: "09:02 AM", checkOut: "06:18 PM", breakTime: "45m", totalHours: "8h 31m", status: "On Time" },
+  { date: "Apr 3, 2026", checkIn: "09:15 AM", checkOut: "06:05 PM", breakTime: "30m", totalHours: "8h 20m", status: "Late" },
+  { date: "Apr 2, 2026", checkIn: "08:55 AM", checkOut: "06:30 PM", breakTime: "1h", totalHours: "8h 35m", status: "On Time" },
+  { date: "Apr 1, 2026", checkIn: "09:00 AM", checkOut: "05:45 PM", breakTime: "45m", totalHours: "8h 00m", status: "On Time" },
+  { date: "Mar 31, 2026", checkIn: "09:30 AM", checkOut: "06:00 PM", breakTime: "30m", totalHours: "8h 00m", status: "Late" },
+  { date: "Mar 28, 2026", checkIn: "08:50 AM", checkOut: "06:10 PM", breakTime: "45m", totalHours: "8h 35m", status: "On Time" },
+];
 
 // ── Mock Data ──────────────────────────────────────────────────────
 const attendanceData: Record<string, string> = {
@@ -134,6 +150,7 @@ const HRAttendance = () => {
   const [activeTab, setActiveTab] = useState<TabType>("calendar");
   const [isCheckedIn, setIsCheckedIn] = useState(false);
   const [checkInTime, setCheckInTime] = useState<string | null>(null);
+  const [checkInTimestamp, setCheckInTimestamp] = useState<Date | null>(null);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [search, setSearch] = useState("");
   const [showLeaveForm, setShowLeaveForm] = useState(false);
@@ -142,6 +159,29 @@ const HRAttendance = () => {
   const [leaveTo, setLeaveTo] = useState("");
   const [leaveReason, setLeaveReason] = useState("");
   const [reportMonth, setReportMonth] = useState(new Date());
+  const [isOnBreak, setIsOnBreak] = useState(false);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [clockLogs, setClockLogs] = useState<ClockLog[]>([]);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Live timer effect
+  useEffect(() => {
+    if (isCheckedIn && checkInTimestamp && !isOnBreak) {
+      timerRef.current = setInterval(() => {
+        setElapsedSeconds(Math.floor((Date.now() - checkInTimestamp.getTime()) / 1000));
+      }, 1000);
+    } else if (timerRef.current) {
+      clearInterval(timerRef.current);
+    }
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [isCheckedIn, checkInTimestamp, isOnBreak]);
+
+  const formatElapsed = (secs: number) => {
+    const h = Math.floor(secs / 3600);
+    const m = Math.floor((secs % 3600) / 60);
+    const s = secs % 60;
+    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  };
 
   const today = new Date();
   const todayStr = format(today, "EEEE, dd MMM yyyy");
@@ -160,8 +200,33 @@ const HRAttendance = () => {
     return { present, absent, halfday, leave };
   })();
 
-  const handleCheckIn = () => { setIsCheckedIn(true); setCheckInTime(format(new Date(), "hh:mm a")); };
-  const handleCheckOut = () => { setIsCheckedIn(false); setCheckInTime(null); };
+  const handleCheckIn = () => {
+    const now = new Date();
+    setIsCheckedIn(true);
+    setCheckInTime(format(now, "hh:mm a"));
+    setCheckInTimestamp(now);
+    setElapsedSeconds(0);
+    setClockLogs(prev => [...prev, { id: crypto.randomUUID(), type: "checkin", time: now, label: "Checked In" }]);
+  };
+  const handleCheckOut = () => {
+    const now = new Date();
+    setClockLogs(prev => [...prev, { id: crypto.randomUUID(), type: "checkout", time: now, label: "Checked Out" }]);
+    setIsCheckedIn(false);
+    setCheckInTime(null);
+    setCheckInTimestamp(null);
+    setIsOnBreak(false);
+    setElapsedSeconds(0);
+  };
+  const handleBreakToggle = () => {
+    const now = new Date();
+    if (isOnBreak) {
+      setIsOnBreak(false);
+      setClockLogs(prev => [...prev, { id: crypto.randomUUID(), type: "break_end", time: now, label: "Break Ended" }]);
+    } else {
+      setIsOnBreak(true);
+      setClockLogs(prev => [...prev, { id: crypto.randomUUID(), type: "break_start", time: now, label: "Break Started" }]);
+    }
+  };
 
   // Calendar
   const monthStart = startOfMonth(currentMonth);
@@ -262,7 +327,7 @@ const HRAttendance = () => {
 
         {/* Tabs */}
         <div className="flex bg-muted rounded-full p-1 overflow-x-auto scrollbar-hide">
-          {(["calendar", "ledger", "team", "report", "leave", "holidays"] as TabType[]).map(tab => (
+          {(["calendar", "clockin", "ledger", "team", "report", "leave", "holidays"] as TabType[]).map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -270,7 +335,7 @@ const HRAttendance = () => {
                 activeTab === tab ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground"
               }`}
             >
-              {tab}
+              {tab === "clockin" ? "Clock In/Out" : tab}
             </button>
           ))}
         </div>
@@ -300,7 +365,164 @@ const HRAttendance = () => {
           </motion.div>
         )}
 
-        {/* ── Ledger Tab ── */}
+        {/* ── Clock In/Out Tab ── */}
+        {activeTab === "clockin" && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+            {/* Live Timer Card */}
+            <div className="bg-card rounded-2xl shadow-sm border border-border/50 p-5 text-center">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <Timer size={18} className="text-primary" />
+                <h3 className="text-sm font-bold text-foreground">Today's Session</h3>
+              </div>
+
+              {/* Timer display */}
+              <motion.div
+                key={elapsedSeconds}
+                className="my-4"
+              >
+                <span className={`text-5xl md:text-6xl font-mono font-bold tracking-wider ${isCheckedIn ? (isOnBreak ? "text-amber-500" : "text-primary") : "text-muted-foreground"}`}>
+                  {formatElapsed(elapsedSeconds)}
+                </span>
+                {isOnBreak && (
+                  <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-xs text-amber-500 font-semibold mt-2 flex items-center justify-center gap-1">
+                    <Coffee size={14} /> On Break — Timer Paused
+                  </motion.p>
+                )}
+              </motion.div>
+
+              {/* Status info */}
+              {isCheckedIn && checkInTime && (
+                <div className="flex items-center justify-center gap-4 mb-4 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1"><LogIn size={12} className="text-emerald-500" /> {checkInTime}</span>
+                  <span className="flex items-center gap-1"><MapPin size={12} /> Office</span>
+                </div>
+              )}
+
+              {/* Action buttons */}
+              <div className="flex gap-2 max-w-sm mx-auto">
+                {!isCheckedIn ? (
+                  <button
+                    onClick={handleCheckIn}
+                    className="flex-1 py-3 rounded-xl bg-emerald-500 text-white font-semibold text-sm flex items-center justify-center gap-2 active:scale-[0.97] transition-all"
+                  >
+                    <Play size={16} /> Clock In
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      onClick={handleBreakToggle}
+                      className={`flex-1 py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 active:scale-[0.97] transition-all ${
+                        isOnBreak ? "bg-primary text-primary-foreground" : "bg-amber-500/10 text-amber-600 border border-amber-500/30"
+                      }`}
+                    >
+                      <Coffee size={16} /> {isOnBreak ? "Resume" : "Break"}
+                    </button>
+                    <button
+                      onClick={handleCheckOut}
+                      className="flex-1 py-3 rounded-xl bg-red-500 text-white font-semibold text-sm flex items-center justify-center gap-2 active:scale-[0.97] transition-all"
+                    >
+                      <Square size={16} /> Clock Out
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Today's Timeline */}
+            {clockLogs.length > 0 && (
+              <div className="bg-card rounded-2xl shadow-sm border border-border/50 p-4">
+                <h4 className="text-sm font-bold text-foreground mb-3">Today's Timeline</h4>
+                <div className="relative pl-6 space-y-3">
+                  <div className="absolute left-2.5 top-1 bottom-1 w-px bg-border" />
+                  {[...clockLogs].reverse().map((log, i) => {
+                    const iconMap = {
+                      checkin: { icon: LogIn, color: "bg-emerald-500 text-white" },
+                      checkout: { icon: LogOut, color: "bg-red-500 text-white" },
+                      break_start: { icon: Coffee, color: "bg-amber-500 text-white" },
+                      break_end: { icon: Play, color: "bg-primary text-primary-foreground" },
+                    };
+                    const cfg = iconMap[log.type];
+                    const Icon = cfg.icon;
+                    return (
+                      <motion.div key={log.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
+                        className="relative flex items-center gap-3"
+                      >
+                        <div className={`absolute -left-6 size-5 rounded-full flex items-center justify-center ${cfg.color}`}>
+                          <Icon size={10} />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-[13px] font-semibold text-foreground">{log.label}</p>
+                          <p className="text-[11px] text-muted-foreground">{format(log.time, "hh:mm:ss a")}</p>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Daily Log History */}
+            <div>
+              <h4 className="text-sm font-bold text-foreground mb-3">Daily Log History</h4>
+
+              {/* Desktop table */}
+              <div className="hidden md:block bg-card rounded-2xl shadow-sm border border-border/50 overflow-hidden">
+                <div className="grid grid-cols-6 gap-1 px-4 py-2.5 bg-muted/50 border-b border-border text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                  <span>Date</span><span>Check In</span><span>Check Out</span><span>Break</span><span>Total</span><span>Status</span>
+                </div>
+                {dailyLogs.map((log, i) => (
+                  <motion.div key={log.date} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }}
+                    className="grid grid-cols-6 gap-1 px-4 py-3 border-b border-border/50 last:border-0 items-center text-[12px]"
+                  >
+                    <span className="font-semibold text-foreground">{log.date}</span>
+                    <span className="text-emerald-600 dark:text-emerald-400 font-medium">{log.checkIn}</span>
+                    <span className="text-red-600 dark:text-red-400 font-medium">{log.checkOut}</span>
+                    <span className="text-muted-foreground">{log.breakTime}</span>
+                    <span className="font-bold text-foreground">{log.totalHours}</span>
+                    <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium w-fit ${
+                      log.status === "On Time" ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                    }`}>{log.status}</span>
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* Mobile cards */}
+              <div className="md:hidden space-y-2.5">
+                {dailyLogs.map((log, i) => (
+                  <motion.div key={log.date} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
+                    className="bg-card rounded-2xl shadow-sm border border-border/50 p-3.5"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[13px] font-bold text-foreground">{log.date}</span>
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${
+                        log.status === "On Time" ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                      }`}>{log.status}</span>
+                    </div>
+                    <div className="grid grid-cols-4 gap-2 text-center">
+                      <div>
+                        <p className="text-[9px] text-muted-foreground">In</p>
+                        <p className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">{log.checkIn}</p>
+                      </div>
+                      <div>
+                        <p className="text-[9px] text-muted-foreground">Out</p>
+                        <p className="text-[11px] font-semibold text-red-600 dark:text-red-400">{log.checkOut}</p>
+                      </div>
+                      <div>
+                        <p className="text-[9px] text-muted-foreground">Break</p>
+                        <p className="text-[11px] font-medium text-muted-foreground">{log.breakTime}</p>
+                      </div>
+                      <div>
+                        <p className="text-[9px] text-muted-foreground">Total</p>
+                        <p className="text-[11px] font-bold text-foreground">{log.totalHours}</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
+
         {activeTab === "ledger" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
             {/* Summary */}
