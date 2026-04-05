@@ -327,7 +327,7 @@ const HRAttendance = () => {
 
         {/* Tabs */}
         <div className="flex bg-muted rounded-full p-1 overflow-x-auto scrollbar-hide">
-          {(["calendar", "ledger", "team", "report", "leave", "holidays"] as TabType[]).map(tab => (
+          {(["calendar", "clockin", "ledger", "team", "report", "leave", "holidays"] as TabType[]).map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -335,7 +335,7 @@ const HRAttendance = () => {
                 activeTab === tab ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground"
               }`}
             >
-              {tab}
+              {tab === "clockin" ? "Clock In/Out" : tab}
             </button>
           ))}
         </div>
