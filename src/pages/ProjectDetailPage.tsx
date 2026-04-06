@@ -101,6 +101,9 @@ const ProjectDetailPage = () => {
               <span className="flex items-center gap-1"><IndianRupee className="h-3.5 w-3.5" />₹{(project.totalAmount / 1000).toFixed(0)}K ({project.package})</span>
             </div>
           </div>
+          <Button className="shrink-0 gap-2" onClick={() => navigate(`/projects/${project.id}/event-day`)}>
+            <Camera className="h-4 w-4" /> Event Day
+          </Button>
         </div>
 
         {/* Quick stats */}
