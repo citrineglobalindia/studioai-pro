@@ -119,7 +119,17 @@ const PremiumBar = ({ label, value, total, colorClass, delay, labelColor }: {
 
 const Index = () => {
   const navigate = useNavigate();
+  const { currentRole } = useRole();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(today);
+
+  // Role-specific dashboards
+  if (currentRole === "photographer") return <PhotographerDashboard />;
+  if (currentRole === "videographer") return <VideographerDashboard />;
+  if (currentRole === "editor") return <EditorDashboard />;
+  if (currentRole === "telecaller") return <TelecallerDashboard />;
+  if (currentRole === "vendor") return <VendorDashboard />;
+  if (currentRole === "hr") return <HRDashboardRole />;
+  if (currentRole === "accounts") return <AccountsDashboard />;
 
   const eventDates = useMemo(() => {
     const dates: Date[] = [];
