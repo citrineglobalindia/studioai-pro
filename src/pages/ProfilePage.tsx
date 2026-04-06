@@ -17,10 +17,10 @@ const ProfilePage = () => {
 
   // Profile fields
   const [name, setName] = useState("Amit Sharma");
-  const [email, setEmail] = useState("amit@framecrm.com");
+   const [email, setEmail] = useState("amit@studioai.com");
   const [phone, setPhone] = useState("+91 98765 43210");
   const [role, setRole] = useState("Studio Owner");
-  const [company, setCompany] = useState("FrameCRM Photography");
+  const [company, setCompany] = useState("StudioAi Photography");
 
   // Toggles
   const [pushNotifications, setPushNotifications] = useState(true);

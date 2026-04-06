@@ -107,7 +107,7 @@ export function AppSidebar() {
           </div>
           {!collapsed && (
             <div>
-              <h1 className="font-display text-sm font-semibold text-foreground">FrameCRM</h1>
+              <h1 className="font-display text-sm font-semibold text-foreground">StudioAi</h1>
               <p className="text-[10px] text-muted-foreground">Photography Studio</p>
             </div>
           )}
