@@ -134,21 +134,20 @@ export function PWALayout({ children }: { children: React.ReactNode }) {
 
       {/* Swipeable Main Content */}
       <main className="flex-1 overflow-auto pb-24 px-4 py-4">
-        <AnimatePresence mode="wait" custom={swipeDirection}>
+        <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={location.pathname}
-            custom={swipeDirection}
-            initial={(dir: number) => ({
+            initial={{
               opacity: 0,
-              x: dir > 0 ? 80 : dir < 0 ? -80 : 0,
+              x: swipeDirection > 0 ? 80 : swipeDirection < 0 ? -80 : 0,
               scale: 0.98,
-            })}
+            }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
-            exit={(dir: number) => ({
+            exit={{
               opacity: 0,
-              x: dir > 0 ? -80 : dir < 0 ? 80 : 0,
+              x: swipeDirection > 0 ? -80 : swipeDirection < 0 ? 80 : 0,
               scale: 0.98,
-            })}
+            }}
             transition={{ type: "spring" as const, stiffness: 350, damping: 35 }}
             drag="x"
             dragConstraints={{ left: 0, right: 0 }}
