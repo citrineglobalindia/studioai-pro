@@ -70,10 +70,10 @@ export function PWALayout({ children }: { children: React.ReactNode }) {
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50 px-4 h-14 flex items-center justify-between safe-area-top">
         <div className="flex items-center gap-3">
           <div className="h-9 w-9 rounded-2xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-lg shadow-primary/20">
-            <span className="text-[10px] font-bold text-primary-foreground tracking-tight">EDV</span>
+            <span className="text-[10px] font-bold text-primary-foreground tracking-tight">SAi</span>
           </div>
           <div>
-            <p className="text-sm font-semibold text-foreground leading-tight font-[var(--font-display)]">E-DigiVault</p>
+            <p className="text-sm font-semibold text-foreground leading-tight font-[var(--font-display)]">StudioAi</p>
             <p className="text-[10px] text-muted-foreground">{roleLabel}</p>
           </div>
         </div>

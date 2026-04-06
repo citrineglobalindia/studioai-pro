@@ -1,7 +1,7 @@
 {
-  "name": "E-DigiVault",
-  "short_name": "DigiVault",
-  "description": "E-DigiVault - Photography Business Management",
+  "name": "StudioAi",
+  "short_name": "StudioAi",
+  "description": "StudioAi - Photography Business Management",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f1117",
