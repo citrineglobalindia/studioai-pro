@@ -14,6 +14,14 @@ import { sampleLeads } from "@/data/lead-types";
 import { useNavigate } from "react-router-dom";
 import { motion, useMotionValue, useTransform, animate, useInView } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { useRole } from "@/contexts/RoleContext";
+import { PhotographerDashboard } from "@/components/dashboards/PhotographerDashboard";
+import { VideographerDashboard } from "@/components/dashboards/VideographerDashboard";
+import { EditorDashboard } from "@/components/dashboards/EditorDashboard";
+import { TelecallerDashboard } from "@/components/dashboards/TelecallerDashboard";
+import { VendorDashboard } from "@/components/dashboards/VendorDashboard";
+import { HRDashboardRole } from "@/components/dashboards/HRDashboardRole";
+import { AccountsDashboard } from "@/components/dashboards/AccountsDashboard";
 
 const today = new Date("2026-04-01");
 
