@@ -15,8 +15,22 @@ import {
   BarChart3, Megaphone, Bot, Heart, Settings, Bell, FolderKanban,
   Receipt, FileText, CalendarDays, ListTodo, UsersRound,
   MessageSquare, Zap, BrainCircuit, ClipboardList, UserCheck,
-  Clock, Palmtree,
+  Clock, Palmtree, Plus, SlidersHorizontal, MoreVertical,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 
 const ROLE_META: Record<string, { icon: React.ElementType; color: string; description: string }> = {
