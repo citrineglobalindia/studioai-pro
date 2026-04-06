@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { RoleProvider, useRole } from "@/contexts/RoleContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { OrgProvider, useOrg } from "@/contexts/OrgContext";
 import { RoleLayoutWrapper } from "@/components/RoleLayoutWrapper";
 import NotFound from "./pages/NotFound.tsx";
 import Index from "./pages/Index.tsx";
@@ -50,8 +51,9 @@ const queryClient = new QueryClient();
 function ProtectedRoutes() {
   const { user, loading } = useAuth();
   const { roleLoading } = useRole();
+  const { hasOrg, orgLoading } = useOrg();
 
-  if (loading || roleLoading) {
+  if (loading || roleLoading || orgLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center animate-pulse">
@@ -61,7 +63,8 @@ function ProtectedRoutes() {
     );
   }
 
-  if (!user) return <Navigate to="/auth" replace />;
+  if (!user) return <Navigate to="/landing" replace />;
+  if (!hasOrg) return <Navigate to="/onboarding" replace />;
 
   return (
     <Routes>
@@ -115,20 +118,22 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
       <AuthProvider>
-        <RoleProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <Routes>
-                <Route path="/landing" element={<LandingPage />} />
-                <Route path="/auth" element={<AuthRoute />} />
-                <Route path="/onboarding" element={<OnboardingPage />} />
-                <Route path="/*" element={<ProtectedRoutes />} />
-              </Routes>
-            </BrowserRouter>
-          </TooltipProvider>
-        </RoleProvider>
+        <OrgProvider>
+          <RoleProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <Routes>
+                  <Route path="/landing" element={<LandingPage />} />
+                  <Route path="/auth" element={<AuthRoute />} />
+                  <Route path="/onboarding" element={<OnboardingPage />} />
+                  <Route path="/*" element={<ProtectedRoutes />} />
+                </Routes>
+              </BrowserRouter>
+            </TooltipProvider>
+          </RoleProvider>
+        </OrgProvider>
       </AuthProvider>
     </ThemeProvider>
   </QueryClientProvider>
