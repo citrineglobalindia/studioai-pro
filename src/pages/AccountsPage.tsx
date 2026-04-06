@@ -282,6 +282,7 @@ const AccountsPage = () => {
         <TabsList className="bg-card border border-border flex-wrap h-auto">
           <TabsTrigger value="overview" className="gap-1 text-xs"><BarChart3 className="h-3.5 w-3.5" /> Overview</TabsTrigger>
           <TabsTrigger value="invoices" className="gap-1 text-xs"><FileText className="h-3.5 w-3.5" /> Invoices</TabsTrigger>
+          <TabsTrigger value="payments" className="gap-1 text-xs"><CreditCard className="h-3.5 w-3.5" /> Payments</TabsTrigger>
           <TabsTrigger value="expenses" className="gap-1 text-xs"><Receipt className="h-3.5 w-3.5" /> Expenses</TabsTrigger>
           <TabsTrigger value="project-pl" className="gap-1 text-xs"><PieChart className="h-3.5 w-3.5" /> Project P&L</TabsTrigger>
           <TabsTrigger value="ledger" className="gap-1 text-xs"><BookOpen className="h-3.5 w-3.5" /> Ledger</TabsTrigger>
