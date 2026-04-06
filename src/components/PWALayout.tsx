@@ -1,16 +1,17 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { Bell, User, Search, MoreHorizontal, X, ChevronRight } from "lucide-react";
+import { Bell, User, MoreHorizontal, X, ChevronRight, Grip } from "lucide-react";
 import { FloatingAIButton } from "@/components/FloatingAIButton";
 import {
   LayoutDashboard, UserPlus, Users, FolderKanban, CalendarDays,
   Zap, CreditCard, Briefcase, MessageSquare, Megaphone, BarChart3,
-  Bot, Sparkles, UserCog, UsersRound, ClipboardList, CalendarOff, Wallet, Settings, FileText
+  Bot, Sparkles, UserCog, UsersRound, ClipboardList, CalendarOff, Wallet, Settings, FileText,
+  Camera, Video, Edit3, PhoneCall
 } from "lucide-react";
-import { useRole, type AppModule } from "@/contexts/RoleContext";
+import { useRole, type AppModule, type AppRole } from "@/contexts/RoleContext";
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import { Button } from "@/components/ui/button";
-import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
+import { motion, AnimatePresence, useMotionValue, useTransform, PanInfo } from "framer-motion";
+import { useState, useCallback } from "react";
 
 const moduleConfig: Record<AppModule, { icon: typeof LayoutDashboard; label: string; path: string; color: string }> = {
   "dashboard": { icon: LayoutDashboard, label: "Home", path: "/", color: "from-amber-500 to-orange-500" },
@@ -39,23 +40,43 @@ const moduleConfig: Record<AppModule, { icon: typeof LayoutDashboard; label: str
   "settings": { icon: Settings, label: "Settings", path: "/settings", color: "from-gray-500 to-slate-500" },
 };
 
-const TAB_PRIORITY: AppModule[] = [
-  "dashboard", "projects", "tasks", "communications", "hr-attendance",
-  "leads", "calendar", "invoices", "hr-dashboard", "analytics"
-];
+// Role-specific bottom navigation — each role gets exactly 4 tabs + more
+const ROLE_TABS: Record<AppRole, AppModule[]> = {
+  admin: ["dashboard", "projects", "tasks", "communications"],
+  photographer: ["dashboard", "projects", "calendar", "communications"],
+  videographer: ["dashboard", "projects", "calendar", "communications"],
+  editor: ["dashboard", "tasks", "projects", "communications"],
+  telecaller: ["dashboard", "leads", "clients", "communications"],
+  vendor: ["dashboard", "projects", "calendar", "communications"],
+  hr: ["dashboard", "hr-dashboard", "hr-attendance", "hr-leaves"],
+  accounts: ["dashboard", "invoices", "accounts-page", "analytics"],
+};
+
+// Role theme accents
+const ROLE_THEME: Record<AppRole, { emoji: string; accent: string; gradientFrom: string }> = {
+  admin: { emoji: "👑", accent: "from-primary to-primary/60", gradientFrom: "from-primary/15" },
+  photographer: { emoji: "📸", accent: "from-blue-500 to-cyan-500", gradientFrom: "from-blue-500/15" },
+  videographer: { emoji: "🎬", accent: "from-purple-500 to-fuchsia-500", gradientFrom: "from-purple-500/15" },
+  editor: { emoji: "✂️", accent: "from-emerald-500 to-teal-500", gradientFrom: "from-emerald-500/15" },
+  telecaller: { emoji: "📞", accent: "from-amber-500 to-orange-500", gradientFrom: "from-amber-500/15" },
+  vendor: { emoji: "🤝", accent: "from-indigo-500 to-violet-500", gradientFrom: "from-indigo-500/15" },
+  hr: { emoji: "👥", accent: "from-teal-500 to-emerald-500", gradientFrom: "from-teal-500/15" },
+  accounts: { emoji: "💰", accent: "from-emerald-500 to-green-500", gradientFrom: "from-emerald-500/15" },
+};
 
 export function PWALayout({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { currentRole, getAccessibleModules } = useRole();
   const [moreOpen, setMoreOpen] = useState(false);
+  const [swipeDirection, setSwipeDirection] = useState(0);
 
   const accessible = getAccessibleModules();
-  const mainTabs = TAB_PRIORITY.filter((m) => accessible.includes(m)).slice(0, 3);
-  const bottomTabs = mainTabs;
+  const roleTabs = ROLE_TABS[currentRole].filter((m) => accessible.includes(m));
+  const theme = ROLE_THEME[currentRole];
 
   const moreItems = accessible
-    .filter((m) => !bottomTabs.includes(m) && m !== "notifications" && m !== "settings" && m !== "profile")
+    .filter((m) => !roleTabs.includes(m) && m !== "notifications" && m !== "settings" && m !== "profile")
     .map((m) => moduleConfig[m])
     .filter(Boolean);
 
@@ -64,17 +85,37 @@ export function PWALayout({ children }: { children: React.ReactNode }) {
   const isActive = (path: string) =>
     location.pathname === path || (path !== "/" && location.pathname.startsWith(path));
 
+  // Swipe navigation between tabs
+  const allNavPaths = [...roleTabs.map((m) => moduleConfig[m].path)];
+  const currentTabIndex = allNavPaths.findIndex((p) => isActive(p));
+
+  const handleDragEnd = useCallback((_: any, info: PanInfo) => {
+    const threshold = 50;
+    if (Math.abs(info.offset.x) > threshold && Math.abs(info.velocity.x) > 100) {
+      if (info.offset.x > 0 && currentTabIndex > 0) {
+        setSwipeDirection(-1);
+        navigate(allNavPaths[currentTabIndex - 1]);
+      } else if (info.offset.x < 0 && currentTabIndex < allNavPaths.length - 1) {
+        setSwipeDirection(1);
+        navigate(allNavPaths[currentTabIndex + 1]);
+      }
+    }
+  }, [currentTabIndex, allNavPaths, navigate]);
+
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      {/* Top Header - Glassmorphic */}
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50 px-4 h-14 flex items-center justify-between safe-area-top">
+    <div className="min-h-screen flex flex-col bg-background overflow-hidden">
+      {/* Top Header - Role-themed */}
+      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/40 px-4 h-14 flex items-center justify-between safe-area-top">
         <div className="flex items-center gap-3">
-          <div className="h-9 w-9 rounded-2xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-lg shadow-primary/20">
-            <span className="text-[10px] font-bold text-primary-foreground tracking-tight">SAi</span>
-          </div>
+          <motion.div
+            whileTap={{ scale: 0.9 }}
+            className={`h-9 w-9 rounded-2xl bg-gradient-to-br ${theme.accent} flex items-center justify-center shadow-lg`}
+          >
+            <span className="text-sm">{theme.emoji}</span>
+          </motion.div>
           <div>
             <p className="text-sm font-semibold text-foreground leading-tight font-[var(--font-display)]">StudioAi</p>
-            <p className="text-[10px] text-muted-foreground">{roleLabel}</p>
+            <p className="text-[10px] text-muted-foreground font-medium">{roleLabel}</p>
           </div>
         </div>
         <div className="flex items-center gap-0.5">
@@ -91,105 +132,139 @@ export function PWALayout({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      {/* Main Content */}
+      {/* Swipeable Main Content */}
       <main className="flex-1 overflow-auto pb-24 px-4 py-4">
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={location.pathname}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.15 }}
+            initial={{
+              opacity: 0,
+              x: swipeDirection > 0 ? 80 : swipeDirection < 0 ? -80 : 0,
+              scale: 0.98,
+            }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{
+              opacity: 0,
+              x: swipeDirection > 0 ? -80 : swipeDirection < 0 ? 80 : 0,
+              scale: 0.98,
+            }}
+            transition={{ type: "spring" as const, stiffness: 350, damping: 35 }}
+            drag="x"
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.15}
+            onDragEnd={handleDragEnd}
+            style={{ touchAction: "pan-y" }}
           >
             {children}
           </motion.div>
         </AnimatePresence>
       </main>
 
-      {/* Full-screen More Menu Overlay */}
+      {/* Full-screen More Menu — Native App Grid */}
       <AnimatePresence>
         {moreOpen && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[60] bg-background/95 backdrop-blur-2xl"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ type: "spring" as const, stiffness: 400, damping: 30 }}
+            className="fixed inset-0 z-[60] bg-background/98 backdrop-blur-3xl"
           >
             <div className="flex flex-col h-full safe-area-top safe-area-bottom">
               {/* Menu Header */}
-              <div className="flex items-center justify-between px-5 py-4 border-b border-border/30">
-                <h2 className="text-lg font-semibold text-foreground font-[var(--font-display)]">All Modules</h2>
+              <div className="flex items-center justify-between px-5 py-4">
+                <div>
+                  <h2 className="text-lg font-bold text-foreground font-[var(--font-display)]">All Modules</h2>
+                  <p className="text-[10px] text-muted-foreground">{roleLabel} · {moreItems.length + roleTabs.length} modules</p>
+                </div>
                 <motion.button
-                  whileTap={{ scale: 0.9 }}
+                  whileTap={{ scale: 0.85, rotate: 90 }}
                   onClick={() => setMoreOpen(false)}
-                  className="h-10 w-10 rounded-2xl bg-muted flex items-center justify-center"
+                  className="h-10 w-10 rounded-2xl bg-muted/80 flex items-center justify-center"
                 >
                   <X className="h-5 w-5 text-foreground" />
                 </motion.button>
               </div>
 
-              {/* Menu Grid */}
-              <div className="flex-1 overflow-auto px-5 py-5">
-                <div className="grid grid-cols-4 gap-3">
-                  {moreItems.map((item, i) => {
-                    const active = isActive(item.path);
+              {/* Scrollable Grid */}
+              <div className="flex-1 overflow-auto px-4 pb-6">
+                {/* Active Tabs Section */}
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.2em] px-1 mb-3">Main</p>
+                <div className="grid grid-cols-4 gap-2 mb-6">
+                  {roleTabs.map((mod, i) => {
+                    const config = moduleConfig[mod];
+                    const active = isActive(config.path);
                     return (
                       <motion.button
-                        key={item.path}
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: i * 0.03, type: "spring", stiffness: 300, damping: 25 }}
+                        key={mod}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.04, type: "spring" as const, stiffness: 300, damping: 25 }}
                         whileTap={{ scale: 0.9 }}
-                        onClick={() => {
-                          navigate(item.path);
-                          setMoreOpen(false);
-                        }}
+                        onClick={() => { navigate(config.path); setMoreOpen(false); }}
                         className="flex flex-col items-center gap-1.5 py-3"
                       >
-                        <div
-                          className={`h-12 w-12 rounded-2xl flex items-center justify-center transition-all ${
-                            active
-                              ? `bg-gradient-to-br ${item.color} shadow-lg`
-                              : "bg-muted/80"
-                          }`}
-                        >
-                          <item.icon className={`h-5 w-5 ${active ? "text-white" : "text-muted-foreground"}`} />
+                        <div className={`h-13 w-13 rounded-[18px] flex items-center justify-center bg-gradient-to-br ${config.color} shadow-lg`}>
+                          <config.icon className="h-5 w-5 text-white" />
                         </div>
-                        <span className={`text-[10px] font-medium leading-tight text-center ${
-                          active ? "text-foreground" : "text-muted-foreground"
-                        }`}>
-                          {item.label}
-                        </span>
+                        <span className="text-[10px] font-semibold text-foreground text-center leading-tight">{config.label}</span>
                       </motion.button>
                     );
                   })}
                 </div>
 
-                {/* Quick Actions */}
-                <div className="mt-6 space-y-2">
-                  <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider px-1 mb-3">Quick Access</p>
-                  {[
-                    moduleConfig["profile"],
-                    moduleConfig["settings"],
-                    moduleConfig["notifications"],
-                  ].filter(Boolean).map((item) => (
-                    <motion.button
-                      key={item.path}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => {
-                        navigate(item.path);
-                        setMoreOpen(false);
-                      }}
-                      className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl bg-muted/50 hover:bg-muted transition-colors"
-                    >
-                      <div className={`h-9 w-9 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center`}>
-                        <item.icon className="h-4 w-4 text-white" />
-                      </div>
-                      <span className="text-sm font-medium text-foreground flex-1 text-left">{item.label}</span>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                    </motion.button>
-                  ))}
+                {/* More Modules */}
+                {moreItems.length > 0 && (
+                  <>
+                    <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.2em] px-1 mb-3">More</p>
+                    <div className="grid grid-cols-4 gap-2 mb-6">
+                      {moreItems.map((item, i) => {
+                        const active = isActive(item.path);
+                        return (
+                          <motion.button
+                            key={item.path}
+                            initial={{ opacity: 0, scale: 0.85 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.1 + i * 0.03, type: "spring" as const, stiffness: 300, damping: 25 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() => { navigate(item.path); setMoreOpen(false); }}
+                            className="flex flex-col items-center gap-1.5 py-3"
+                          >
+                            <div className={`h-13 w-13 rounded-[18px] flex items-center justify-center transition-all ${
+                              active ? `bg-gradient-to-br ${item.color} shadow-lg` : "bg-muted/80 border border-border/50"
+                            }`}>
+                              <item.icon className={`h-5 w-5 ${active ? "text-white" : "text-muted-foreground"}`} />
+                            </div>
+                            <span className={`text-[10px] font-medium leading-tight text-center ${
+                              active ? "text-foreground font-semibold" : "text-muted-foreground"
+                            }`}>{item.label}</span>
+                          </motion.button>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+
+                {/* Quick Access List */}
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.2em] px-1 mb-3">Account</p>
+                <div className="space-y-1.5">
+                  {(["profile", "settings", "notifications"] as AppModule[]).map((mod) => {
+                    const config = moduleConfig[mod];
+                    return (
+                      <motion.button
+                        key={mod}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => { navigate(config.path); setMoreOpen(false); }}
+                        className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl bg-muted/40 active:bg-muted transition-colors"
+                      >
+                        <div className={`h-9 w-9 rounded-xl bg-gradient-to-br ${config.color} flex items-center justify-center`}>
+                          <config.icon className="h-4 w-4 text-white" />
+                        </div>
+                        <span className="text-sm font-medium text-foreground flex-1 text-left">{config.label}</span>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground/50" />
+                      </motion.button>
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -197,11 +272,12 @@ export function PWALayout({ children }: { children: React.ReactNode }) {
         )}
       </AnimatePresence>
 
-      {/* Bottom Tab Navigation - Floating Pill */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 px-4 pb-3 safe-area-bottom">
-        <nav className="bg-card/90 backdrop-blur-xl border border-border/50 rounded-2xl shadow-2xl shadow-black/20 mx-auto max-w-sm">
-          <div className="flex items-center justify-around h-16 px-2">
-            {bottomTabs.map((mod) => {
+      {/* Bottom Tab Navigation - Role-themed Floating Pill */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 px-3 pb-2 safe-area-bottom">
+        <nav className="bg-card/90 backdrop-blur-xl border border-border/40 rounded-[20px] shadow-2xl shadow-black/25 mx-auto max-w-sm">
+          {/* Tab indicator track */}
+          <div className="flex items-center justify-around h-[60px] px-1">
+            {roleTabs.map((mod) => {
               const config = moduleConfig[mod];
               if (!config) return null;
               const active = isActive(config.path);
@@ -210,26 +286,30 @@ export function PWALayout({ children }: { children: React.ReactNode }) {
               return (
                 <motion.button
                   key={mod}
-                  whileTap={{ scale: 0.85 }}
-                  onClick={() => navigate(config.path)}
+                  whileTap={{ scale: 0.8 }}
+                  onClick={() => { setSwipeDirection(0); navigate(config.path); }}
                   className="flex flex-col items-center justify-center gap-0.5 flex-1 py-1 relative"
                 >
                   {active && (
                     <motion.div
-                      layoutId="activeTab"
-                      className={`absolute -top-0.5 left-1/2 -translate-x-1/2 h-1 w-8 rounded-full bg-gradient-to-r ${config.color}`}
-                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                      layoutId="activeTabPill"
+                      className={`absolute inset-x-2 -top-[1px] h-[3px] rounded-full bg-gradient-to-r ${config.color}`}
+                      transition={{ type: "spring" as const, stiffness: 500, damping: 35 }}
                     />
                   )}
-                  <div className={`p-1.5 rounded-xl transition-all ${
-                    active ? `bg-gradient-to-br ${config.color} shadow-lg` : ""
-                  }`}>
-                    <Icon className={`h-5 w-5 transition-colors ${
+                  <motion.div
+                    animate={active ? { scale: 1.05, y: -2 } : { scale: 1, y: 0 }}
+                    transition={{ type: "spring" as const, stiffness: 400, damping: 25 }}
+                    className={`p-1.5 rounded-xl transition-all duration-200 ${
+                      active ? `bg-gradient-to-br ${config.color} shadow-lg` : ""
+                    }`}
+                  >
+                    <Icon className={`h-[18px] w-[18px] transition-colors ${
                       active ? "text-white" : "text-muted-foreground"
                     }`} />
-                  </div>
-                  <span className={`text-[10px] font-medium transition-colors ${
-                    active ? "text-foreground" : "text-muted-foreground"
+                  </motion.div>
+                  <span className={`text-[9px] font-semibold transition-colors ${
+                    active ? "text-foreground" : "text-muted-foreground/70"
                   }`}>
                     {config.label}
                   </span>
@@ -239,14 +319,14 @@ export function PWALayout({ children }: { children: React.ReactNode }) {
 
             {/* More Button */}
             <motion.button
-              whileTap={{ scale: 0.85 }}
+              whileTap={{ scale: 0.8 }}
               onClick={() => setMoreOpen(true)}
               className="flex flex-col items-center justify-center gap-0.5 flex-1 py-1"
             >
-              <div className={`p-1.5 rounded-xl transition-all ${moreOpen ? "bg-primary/15" : ""}`}>
-                <MoreHorizontal className={`h-5 w-5 ${moreOpen ? "text-primary" : "text-muted-foreground"}`} />
+              <div className={`p-1.5 rounded-xl transition-all ${moreOpen ? "bg-muted" : ""}`}>
+                <Grip className={`h-[18px] w-[18px] ${moreOpen ? "text-primary" : "text-muted-foreground"}`} />
               </div>
-              <span className={`text-[10px] font-medium ${moreOpen ? "text-primary" : "text-muted-foreground"}`}>
+              <span className={`text-[9px] font-semibold ${moreOpen ? "text-primary" : "text-muted-foreground/70"}`}>
                 More
               </span>
             </motion.button>
