@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { useRole, ALL_ROLES, ALL_MODULES, type AppRole, type AppModule } from "@/contexts/RoleContext";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
