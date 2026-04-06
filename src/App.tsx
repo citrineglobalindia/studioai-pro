@@ -23,6 +23,7 @@ import AISelectionPage from "./pages/AISelectionPage";
 import TasksPage from "./pages/TasksPage";
 import EventsPage from "./pages/EventsPage";
 import AlbumsPage from "./pages/AlbumsPage";
+import EventDayPage from "./pages/EventDayPage";
 
 import SettingsPage from "./pages/SettingsPage";
 import HRDashboard from "./pages/hr/HRDashboard";
@@ -53,6 +54,7 @@ const App = () => (
                 <Route path="/quotations" element={<QuotationsPage />} />
                 <Route path="/projects" element={<ProjectsPage />} />
                 <Route path="/projects/:id" element={<ProjectDetailPage />} />
+                <Route path="/projects/:projectId/event-day" element={<EventDayPage />} />
                 <Route path="/calendar" element={<CalendarPage />} />
                 <Route path="/tasks" element={<TasksPage />} />
                 <Route path="/events" element={<EventsPage />} />
