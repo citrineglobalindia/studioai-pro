@@ -4,7 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/contexts/ThemeContext";
-import { RoleProvider } from "@/contexts/RoleContext";
+import { RoleProvider, useRole } from "@/contexts/RoleContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { RoleLayoutWrapper } from "@/components/RoleLayoutWrapper";
 import NotFound from "./pages/NotFound.tsx";
