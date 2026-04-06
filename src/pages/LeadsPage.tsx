@@ -87,7 +87,34 @@ const LeadsPage = () => {
     });
   }, [leads, search, statusFilter, userFilter, viewMode]);
 
-  const newLeads = leads.filter((l) => l.stage === "new").length;
+  const handleAddLead = () => {
+    if (!newLead.name || !newLead.phone) {
+      toast.error("Name and phone are required");
+      return;
+    }
+    const lead: Lead = {
+      id: `l-${Date.now()}`,
+      serialNo: `LD${1556 + leads.length}`,
+      name: newLead.name,
+      phone: newLead.phone,
+      email: newLead.email || undefined,
+      company: newLead.company || undefined,
+      city: newLead.city || undefined,
+      source: newLead.source,
+      stage: "new",
+      eventType: newLead.eventType,
+      eventDate: newLead.eventDate || undefined,
+      budget: newLead.budget ? parseInt(newLead.budget) : undefined,
+      notes: newLead.notes || undefined,
+      assignedTo: newLead.assignedTo || undefined,
+      createdAt: new Date().toISOString().split("T")[0],
+    };
+    setLeads((prev) => [lead, ...prev]);
+    setAddLeadOpen(false);
+    setNewLead({ name: "", phone: "", email: "", company: "", city: "", source: "instagram", eventType: "wedding", eventDate: "", budget: "", notes: "", assignedTo: "" });
+    toast.success("New lead added!");
+  };
+
   const followUps = leads.filter((l) => l.stage === "contacted").length;
   const converted = leads.filter((l) => l.stage === "converted").length;
   const totalLeads = leads.length;
