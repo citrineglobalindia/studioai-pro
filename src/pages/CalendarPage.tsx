@@ -817,7 +817,7 @@ const CalendarPage = () => {
               <Select value={newEvent.projectId} onValueChange={v => setNewEvent(p => ({ ...p, projectId: v }))}>
                 <SelectTrigger className="mt-1"><SelectValue placeholder="Select project (optional)" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No project (standalone)</SelectItem>
+                  <SelectItem value="none">No project (standalone)</SelectItem>
                   {sampleProjects.map(p => (
                     <SelectItem key={p.id} value={p.id}>
                       {p.clientName} & {p.partnerName} — {p.city}
