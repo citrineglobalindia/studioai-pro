@@ -161,6 +161,45 @@ export default function AccessControlPage() {
     setHasChanges(true);
   };
 
+  const enableAllForRole = (role: AppRole) => {
+    setLocalAccess((prev) => ({
+      ...prev,
+      [role]: ALL_MODULES.map((m) => m.value),
+    }));
+    setHasChanges(true);
+    toast.success(`All modules enabled for ${ALL_ROLES.find((r) => r.value === role)?.label}`);
+  };
+
+  const disableAllForRole = (role: AppRole) => {
+    setLocalAccess((prev) => ({ ...prev, [role]: [] }));
+    setHasChanges(true);
+    toast.success(`All modules disabled for ${ALL_ROLES.find((r) => r.value === role)?.label}`);
+  };
+
+  const toggleModuleForRole = (role: AppRole, mod: AppModule) => {
+    setLocalAccess((prev) => {
+      const current = prev[role] ?? [];
+      const updated = current.includes(mod)
+        ? current.filter((m) => m !== mod)
+        : [...current, mod];
+      return { ...prev, [role]: updated };
+    });
+    setHasChanges(true);
+  };
+
+  const toggleGroupForRole = (role: AppRole, group: string) => {
+    const groupModules = ALL_MODULES.filter((m) => m.group === group).map((m) => m.value);
+    const current = localAccess[role] ?? [];
+    const allEnabled = groupModules.every((m) => current.includes(m));
+    setLocalAccess((prev) => {
+      const updated = allEnabled
+        ? current.filter((m) => !groupModules.includes(m))
+        : [...new Set([...current, ...groupModules])];
+      return { ...prev, [role]: updated };
+    });
+    setHasChanges(true);
+  };
+
   const handleSave = () => {
     setRoleAccess(localAccess);
     setHasChanges(false);
