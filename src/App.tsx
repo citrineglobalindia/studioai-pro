@@ -21,6 +21,7 @@ import ContractsPage from "./pages/ContractsPage";
 import AIAssistantPage from "./pages/AIAssistantPage";
 import AISelectionPage from "./pages/AISelectionPage";
 import TasksPage from "./pages/TasksPage";
+import EventsPage from "./pages/EventsPage";
 
 import SettingsPage from "./pages/SettingsPage";
 import HRDashboard from "./pages/hr/HRDashboard";
