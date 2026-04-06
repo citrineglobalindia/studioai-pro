@@ -71,6 +71,7 @@ export function PWALayout({ children }: { children: React.ReactNode }) {
   const { currentRole, getAccessibleModules } = useRole();
   const [moreOpen, setMoreOpen] = useState(false);
   const [swipeDirection, setSwipeDirection] = useState(0);
+  const { signOut } = useAuth();
 
   const accessible = getAccessibleModules();
   const roleTabs = ROLE_TABS[currentRole].filter((m) => accessible.includes(m));
