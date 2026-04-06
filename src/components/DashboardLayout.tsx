@@ -44,6 +44,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             {children}
           </main>
         </div>
+        <FloatingAIButton />
       </div>
     </SidebarProvider>
   );
