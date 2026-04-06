@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -18,14 +20,14 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-  sampleLeads, stageConfig, type Lead, type LeadStage,
+  sampleLeads, stageConfig, sourceConfig, eventTypeLabels, type Lead, type LeadStage, type LeadSource, type EventType,
 } from "@/data/lead-types";
 import {
   Plus, Search, RefreshCw, Upload, Download, Filter,
   Eye, PhoneCall, Pencil, Trash2, Bell, UserPlus,
   Sparkles, Users, TrendingUp, Target, ChevronDown,
   LayoutGrid, BarChart3, Clock, FileText, ExternalLink,
-  X, SlidersHorizontal, CalendarDays,
+  X, SlidersHorizontal, CalendarDays, IndianRupee,
 } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
@@ -33,6 +35,8 @@ import { cn } from "@/lib/utils";
 
 const stages: LeadStage[] = ["new", "contacted", "proposal-sent", "converted", "lost"];
 const teamMembers = ["Raj Patel", "Vikram Singh", "Neha Sharma", "Amit Verma"];
+const sources: LeadSource[] = ["instagram", "whatsapp", "call", "website", "referral", "facebook"];
+const eventTypes: EventType[] = ["wedding", "pre-wedding", "engagement", "reception", "corporate", "birthday"];
 
 const LeadsPage = () => {
   const [leads, setLeads] = useState<Lead[]>(sampleLeads);
@@ -46,6 +50,15 @@ const LeadsPage = () => {
   const [filterOpen, setFilterOpen] = useState(false);
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+
+  // Add Lead Sheet
+  const [addLeadOpen, setAddLeadOpen] = useState(false);
+  const [newLead, setNewLead] = useState({
+    name: "", phone: "", email: "", company: "", city: "",
+    source: "instagram" as LeadSource,
+    eventType: "wedding" as EventType,
+    eventDate: "", budget: "", notes: "", assignedTo: "",
+  });
 
   const activeFilterCount = [
     statusFilter !== "all" ? 1 : 0,
@@ -73,6 +86,34 @@ const LeadsPage = () => {
       return matchSearch && matchStatus && matchUser && matchView;
     });
   }, [leads, search, statusFilter, userFilter, viewMode]);
+
+  const handleAddLead = () => {
+    if (!newLead.name || !newLead.phone) {
+      toast.error("Name and phone are required");
+      return;
+    }
+    const lead: Lead = {
+      id: `l-${Date.now()}`,
+      serialNo: `LD${1556 + leads.length}`,
+      name: newLead.name,
+      phone: newLead.phone,
+      email: newLead.email || undefined,
+      company: newLead.company || undefined,
+      city: newLead.city || undefined,
+      source: newLead.source,
+      stage: "new",
+      eventType: newLead.eventType,
+      eventDate: newLead.eventDate || undefined,
+      budget: newLead.budget ? parseInt(newLead.budget) : undefined,
+      notes: newLead.notes || undefined,
+      assignedTo: newLead.assignedTo || undefined,
+      createdAt: new Date().toISOString().split("T")[0],
+    };
+    setLeads((prev) => [lead, ...prev]);
+    setAddLeadOpen(false);
+    setNewLead({ name: "", phone: "", email: "", company: "", city: "", source: "instagram", eventType: "wedding", eventDate: "", budget: "", notes: "", assignedTo: "" });
+    toast.success("New lead added!");
+  };
 
   const newLeads = leads.filter((l) => l.stage === "new").length;
   const followUps = leads.filter((l) => l.stage === "contacted").length;
@@ -135,7 +176,7 @@ const LeadsPage = () => {
           <Button variant="outline" size="sm" className="gap-2">
             <Upload className="h-3.5 w-3.5" /> Import/Export
           </Button>
-          <Button size="sm" className="gap-2">
+          <Button size="sm" className="gap-2" onClick={() => setAddLeadOpen(true)}>
             <Plus className="h-4 w-4" /> New Lead
           </Button>
         </div>
@@ -570,6 +611,101 @@ const LeadsPage = () => {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* ═══ ADD LEAD SHEET ═══ */}
+      <Sheet open={addLeadOpen} onOpenChange={setAddLeadOpen}>
+        <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle className="flex items-center gap-2">
+              <Plus className="h-4 w-4 text-primary" /> Add New Lead
+            </SheetTitle>
+          </SheetHeader>
+          <div className="mt-6 space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="col-span-2 space-y-1.5">
+                <Label className="text-xs font-medium">Name *</Label>
+                <Input placeholder="Client name" value={newLead.name} onChange={(e) => setNewLead((p) => ({ ...p, name: e.target.value }))} />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium">Phone *</Label>
+                <Input placeholder="9876543210" value={newLead.phone} onChange={(e) => setNewLead((p) => ({ ...p, phone: e.target.value }))} />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium">Email</Label>
+                <Input placeholder="email@example.com" value={newLead.email} onChange={(e) => setNewLead((p) => ({ ...p, email: e.target.value }))} />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium">Company</Label>
+                <Input placeholder="Company name" value={newLead.company} onChange={(e) => setNewLead((p) => ({ ...p, company: e.target.value }))} />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium">City</Label>
+                <Input placeholder="City" value={newLead.city} onChange={(e) => setNewLead((p) => ({ ...p, city: e.target.value }))} />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium">Lead Source</Label>
+              <div className="grid grid-cols-3 gap-2">
+                {sources.map((s) => (
+                  <button key={s} onClick={() => setNewLead((p) => ({ ...p, source: s }))}
+                    className={cn("flex items-center gap-1.5 px-3 py-2 rounded-lg border text-xs font-medium transition-all",
+                      newLead.source === s ? "bg-primary/10 border-primary/40 text-primary" : "bg-card border-border text-muted-foreground hover:border-primary/20"
+                    )}>
+                    <span>{sourceConfig[s].emoji}</span> {sourceConfig[s].label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium">Event Type</Label>
+              <div className="grid grid-cols-3 gap-2">
+                {eventTypes.map((et) => (
+                  <button key={et} onClick={() => setNewLead((p) => ({ ...p, eventType: et }))}
+                    className={cn("px-3 py-2 rounded-lg border text-xs font-medium transition-all",
+                      newLead.eventType === et ? "bg-primary/10 border-primary/40 text-primary" : "bg-card border-border text-muted-foreground hover:border-primary/20"
+                    )}>
+                    {eventTypeLabels[et]}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium">Event Date</Label>
+                <Input type="date" value={newLead.eventDate} onChange={(e) => setNewLead((p) => ({ ...p, eventDate: e.target.value }))} />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium">Budget (₹)</Label>
+                <Input type="number" placeholder="300000" value={newLead.budget} onChange={(e) => setNewLead((p) => ({ ...p, budget: e.target.value }))} />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium">Assign To</Label>
+              <Select value={newLead.assignedTo} onValueChange={(v) => setNewLead((p) => ({ ...p, assignedTo: v }))}>
+                <SelectTrigger><SelectValue placeholder="Select team member" /></SelectTrigger>
+                <SelectContent>
+                  {teamMembers.map((m) => (
+                    <SelectItem key={m} value={m}>{m}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium">Notes</Label>
+              <Textarea placeholder="Any details about this lead..." value={newLead.notes} onChange={(e) => setNewLead((p) => ({ ...p, notes: e.target.value }))} rows={3} />
+            </div>
+
+            <Button className="w-full" onClick={handleAddLead}>
+              <Plus className="h-4 w-4 mr-1" /> Add Lead
+            </Button>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };

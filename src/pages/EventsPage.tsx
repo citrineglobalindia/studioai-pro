@@ -1,10 +1,12 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { CalendarDays, MapPin, Users, Clock, Filter, Search, UserPlus, X, Check } from "lucide-react";
+import { CalendarDays, MapPin, Users, Clock, Filter, Search, UserPlus, X, Check, Plus } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -12,6 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { sampleClients, type ClientEvent } from "@/data/clients-data";
+import { cn } from "@/lib/utils";
 
 interface EventWithClient extends ClientEvent {
   clientName: string;
@@ -61,9 +64,15 @@ export default function EventsPage() {
   const [assignSheetOpen, setAssignSheetOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<EventWithClient | null>(null);
   const [assignments, setAssignments] = useState<Record<string, string[]>>({});
+  const [addEventOpen, setAddEventOpen] = useState(false);
+  const [newEvent, setNewEvent] = useState({
+    clientId: "", name: "", type: "wedding" as ClientEvent["type"],
+    date: "", venue: "", notes: "",
+  });
+  const [extraEvents, setExtraEvents] = useState<EventWithClient[]>([]);
 
   const allEvents: EventWithClient[] = useMemo(() => {
-    return sampleClients.flatMap(client =>
+    const base = sampleClients.flatMap(client =>
       client.events.map(event => ({
         ...event,
         clientName: client.name,
@@ -72,8 +81,9 @@ export default function EventsPage() {
           .map(tid => teamMembers.find(t => t.id === tid)!)
           .filter(Boolean),
       }))
-    ).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  }, [assignments]);
+    );
+    return [...base, ...extraEvents].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  }, [assignments, extraEvents]);
 
   const filteredEvents = useMemo(() => {
     return allEvents.filter(event => {
@@ -122,12 +132,41 @@ export default function EventsPage() {
     setAssignSheetOpen(false);
   };
 
+  const handleAddEvent = () => {
+    if (!newEvent.name || !newEvent.date || !newEvent.venue) {
+      toast.error("Name, date and venue are required");
+      return;
+    }
+    const client = sampleClients.find(c => c.id === newEvent.clientId);
+    const event: EventWithClient = {
+      id: `ev-${Date.now()}`,
+      name: newEvent.name,
+      date: newEvent.date,
+      venue: newEvent.venue,
+      type: newEvent.type,
+      status: "upcoming",
+      notes: newEvent.notes || undefined,
+      clientName: client?.name || "Studio Event",
+      clientId: newEvent.clientId || "",
+      assignedTeam: [],
+    };
+    setExtraEvents(prev => [...prev, event]);
+    setAddEventOpen(false);
+    setNewEvent({ clientId: "", name: "", type: "wedding", date: "", venue: "", notes: "" });
+    toast.success("Event added!");
+  };
+
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-6xl mx-auto">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Events</h1>
-        <p className="text-sm text-muted-foreground mt-1">Manage all client events & assign your team</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Events</h1>
+          <p className="text-sm text-muted-foreground mt-1">Manage all client events & assign your team</p>
+        </div>
+        <Button className="gap-2" onClick={() => setAddEventOpen(true)}>
+          <Plus className="h-4 w-4" /> Add Event
+        </Button>
       </div>
 
       {/* Stats */}
@@ -351,6 +390,72 @@ export default function EventsPage() {
               </Button>
             </div>
           )}
+        </SheetContent>
+      </Sheet>
+
+      {/* ═══ ADD EVENT SHEET ═══ */}
+      <Sheet open={addEventOpen} onOpenChange={setAddEventOpen}>
+        <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle className="flex items-center gap-2">
+              <Plus className="h-4 w-4 text-primary" /> Add New Event
+            </SheetTitle>
+          </SheetHeader>
+          <div className="mt-6 space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium">Client</Label>
+              <Select value={newEvent.clientId} onValueChange={(v) => setNewEvent(p => ({ ...p, clientId: v }))}>
+                <SelectTrigger><SelectValue placeholder="Select client" /></SelectTrigger>
+                <SelectContent>
+                  {sampleClients.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium">Event Type</Label>
+              <div className="grid grid-cols-4 gap-2">
+                {Object.entries(eventEmojis).map(([type, emoji]) => (
+                  <button key={type} onClick={() => {
+                    setNewEvent(p => ({ ...p, type: type as ClientEvent["type"], name: p.name || type.charAt(0).toUpperCase() + type.slice(1) }));
+                  }}
+                    className={cn("flex flex-col items-center gap-1 p-2 rounded-lg border text-xs transition-all",
+                      newEvent.type === type ? "border-primary/40 bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground"
+                    )}>
+                    <span className="text-lg">{emoji}</span>
+                    <span className="capitalize text-[10px]">{type}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium">Event Name *</Label>
+              <Input placeholder="e.g. Sangeet Night" value={newEvent.name} onChange={(e) => setNewEvent(p => ({ ...p, name: e.target.value }))} />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium">Date *</Label>
+                <Input type="date" value={newEvent.date} onChange={(e) => setNewEvent(p => ({ ...p, date: e.target.value }))} />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium">Venue *</Label>
+                <Input placeholder="Venue name" value={newEvent.venue} onChange={(e) => setNewEvent(p => ({ ...p, venue: e.target.value }))} />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium">Notes</Label>
+              <Textarea placeholder="Special requirements..." value={newEvent.notes} onChange={(e) => setNewEvent(p => ({ ...p, notes: e.target.value }))} rows={2} />
+            </div>
+
+            <Button className="w-full" onClick={handleAddEvent}>
+              <Plus className="h-4 w-4 mr-1" /> Add Event
+            </Button>
+          </div>
         </SheetContent>
       </Sheet>
     </div>
