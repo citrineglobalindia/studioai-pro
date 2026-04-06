@@ -23,6 +23,7 @@ import AISelectionPage from "./pages/AISelectionPage";
 import TasksPage from "./pages/TasksPage";
 import EventsPage from "./pages/EventsPage";
 import AlbumsPage from "./pages/AlbumsPage";
+import EventDayPage from "./pages/EventDayPage";
 
 import SettingsPage from "./pages/SettingsPage";
 import HRDashboard from "./pages/hr/HRDashboard";
