@@ -392,6 +392,72 @@ export default function EventsPage() {
           )}
         </SheetContent>
       </Sheet>
+
+      {/* ═══ ADD EVENT SHEET ═══ */}
+      <Sheet open={addEventOpen} onOpenChange={setAddEventOpen}>
+        <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle className="flex items-center gap-2">
+              <Plus className="h-4 w-4 text-primary" /> Add New Event
+            </SheetTitle>
+          </SheetHeader>
+          <div className="mt-6 space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium">Client</Label>
+              <Select value={newEvent.clientId} onValueChange={(v) => setNewEvent(p => ({ ...p, clientId: v }))}>
+                <SelectTrigger><SelectValue placeholder="Select client" /></SelectTrigger>
+                <SelectContent>
+                  {sampleClients.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium">Event Type</Label>
+              <div className="grid grid-cols-4 gap-2">
+                {Object.entries(eventEmojis).map(([type, emoji]) => (
+                  <button key={type} onClick={() => {
+                    setNewEvent(p => ({ ...p, type: type as ClientEvent["type"], name: p.name || type.charAt(0).toUpperCase() + type.slice(1) }));
+                  }}
+                    className={cn("flex flex-col items-center gap-1 p-2 rounded-lg border text-xs transition-all",
+                      newEvent.type === type ? "border-primary/40 bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground"
+                    )}>
+                    <span className="text-lg">{emoji}</span>
+                    <span className="capitalize text-[10px]">{type}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium">Event Name *</Label>
+              <Input placeholder="e.g. Sangeet Night" value={newEvent.name} onChange={(e) => setNewEvent(p => ({ ...p, name: e.target.value }))} />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium">Date *</Label>
+                <Input type="date" value={newEvent.date} onChange={(e) => setNewEvent(p => ({ ...p, date: e.target.value }))} />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium">Venue *</Label>
+                <Input placeholder="Venue name" value={newEvent.venue} onChange={(e) => setNewEvent(p => ({ ...p, venue: e.target.value }))} />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium">Notes</Label>
+              <Textarea placeholder="Special requirements..." value={newEvent.notes} onChange={(e) => setNewEvent(p => ({ ...p, notes: e.target.value }))} rows={2} />
+            </div>
+
+            <Button className="w-full" onClick={handleAddEvent}>
+              <Plus className="h-4 w-4 mr-1" /> Add Event
+            </Button>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
