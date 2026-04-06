@@ -282,9 +282,8 @@ export default function AccessControlPage() {
           const isSelected = selectedRole === r.value;
           const count = (localAccess[r.value] ?? []).length;
           return (
-            <motion.button
+            <motion.div
               key={r.value}
-              onClick={() => setSelectedRole(r.value)}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               className={cn(
@@ -294,31 +293,63 @@ export default function AccessControlPage() {
                   : "bg-card border-border hover:border-primary/20 hover:bg-muted/50"
               )}
             >
-              <div className={cn(
-                "h-10 w-10 rounded-xl flex items-center justify-center transition-colors",
-                isSelected ? "bg-primary/20" : "bg-muted"
-              )}>
-                <Icon className={cn("h-5 w-5", isSelected ? "text-primary" : meta?.color || "text-muted-foreground")} />
-              </div>
-              <span className={cn("text-xs font-semibold", isSelected ? "text-foreground" : "text-muted-foreground")}>
-                {r.label}
-              </span>
-              <Badge
-                variant="outline"
-                className={cn(
-                  "text-[10px] px-1.5",
-                  isSelected ? "border-primary/40 text-primary" : "border-border text-muted-foreground"
-                )}
+              {/* Dropdown menu */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    className="absolute top-2 right-2 h-6 w-6 rounded-md flex items-center justify-center hover:bg-muted/80 transition-colors z-10"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <MoreVertical className="h-3.5 w-3.5 text-muted-foreground" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onClick={() => { enableAllForRole(r.value); setSelectedRole(r.value); }}>
+                    <CheckCheck className="h-3.5 w-3.5 mr-2 text-green-500" />
+                    Enable All Modules
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => { disableAllForRole(r.value); setSelectedRole(r.value); }}>
+                    <XCircle className="h-3.5 w-3.5 mr-2 text-destructive" />
+                    Disable All Modules
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => setAdvancedEditRole(r.value)}>
+                    <SlidersHorizontal className="h-3.5 w-3.5 mr-2 text-primary" />
+                    Advanced Edit
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <button
+                onClick={() => setSelectedRole(r.value)}
+                className="flex flex-col items-center gap-2 w-full"
               >
-                {count}/{totalModules}
-              </Badge>
+                <div className={cn(
+                  "h-10 w-10 rounded-xl flex items-center justify-center transition-colors",
+                  isSelected ? "bg-primary/20" : "bg-muted"
+                )}>
+                  <Icon className={cn("h-5 w-5", isSelected ? "text-primary" : meta?.color || "text-muted-foreground")} />
+                </div>
+                <span className={cn("text-xs font-semibold", isSelected ? "text-foreground" : "text-muted-foreground")}>
+                  {r.label}
+                </span>
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    "text-[10px] px-1.5",
+                    isSelected ? "border-primary/40 text-primary" : "border-border text-muted-foreground"
+                  )}
+                >
+                  {count}/{totalModules}
+                </Badge>
+              </button>
               {isSelected && (
                 <motion.div
                   layoutId="roleIndicator"
                   className="absolute -bottom-px left-3 right-3 h-0.5 bg-primary rounded-full"
                 />
               )}
-            </motion.button>
+            </motion.div>
           );
         })}
       </div>
