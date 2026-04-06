@@ -130,6 +130,7 @@ export function PWALayout({ children }: { children: React.ReactNode }) {
           })}
         </div>
       </nav>
+      <FloatingAIButton />
     </div>
   );
 }
