@@ -45,6 +45,7 @@ import NotificationsPage from "./pages/NotificationsPage";
 import AccountsPage from "./pages/AccountsPage";
 import ProfilePage from "./pages/ProfilePage";
 import AccessControlPage from "./pages/AccessControlPage";
+import SuperAdminPage from "./pages/SuperAdminPage";
 
 const queryClient = new QueryClient();
 
