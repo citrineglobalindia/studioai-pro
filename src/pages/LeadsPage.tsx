@@ -115,6 +115,7 @@ const LeadsPage = () => {
     toast.success("New lead added!");
   };
 
+  const newLeads = leads.filter((l) => l.stage === "new").length;
   const followUps = leads.filter((l) => l.stage === "contacted").length;
   const converted = leads.filter((l) => l.stage === "converted").length;
   const totalLeads = leads.length;
