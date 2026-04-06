@@ -132,6 +132,30 @@ export default function EventsPage() {
     setAssignSheetOpen(false);
   };
 
+  const handleAddEvent = () => {
+    if (!newEvent.name || !newEvent.date || !newEvent.venue) {
+      toast.error("Name, date and venue are required");
+      return;
+    }
+    const client = sampleClients.find(c => c.id === newEvent.clientId);
+    const event: EventWithClient = {
+      id: `ev-${Date.now()}`,
+      name: newEvent.name,
+      date: newEvent.date,
+      venue: newEvent.venue,
+      type: newEvent.type,
+      status: "upcoming",
+      notes: newEvent.notes || undefined,
+      clientName: client?.name || "Studio Event",
+      clientId: newEvent.clientId || "",
+      assignedTeam: [],
+    };
+    setExtraEvents(prev => [...prev, event]);
+    setAddEventOpen(false);
+    setNewEvent({ clientId: "", name: "", type: "wedding", date: "", venue: "", notes: "" });
+    toast.success("Event added!");
+  };
+
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-6xl mx-auto">
       {/* Header */}
