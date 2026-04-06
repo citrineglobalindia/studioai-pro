@@ -638,6 +638,111 @@ export default function AccessControlPage() {
           </table>
         </div>
       )}
+
+      {/* ═══ ADVANCED EDIT DIALOG ═══ */}
+      <Dialog open={!!advancedEditRole} onOpenChange={(open) => !open && setAdvancedEditRole(null)}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              {advancedEditRole && ROLE_META[advancedEditRole] && (
+                <div className={cn("h-9 w-9 rounded-xl flex items-center justify-center bg-primary/15")}>
+                  {React.createElement(ROLE_META[advancedEditRole]?.icon ?? Shield, {
+                    className: cn("h-5 w-5", ROLE_META[advancedEditRole]?.color),
+                  })}
+                </div>
+              )}
+              <div>
+                <span className="text-lg font-bold">
+                  Advanced Edit — {ALL_ROLES.find((r) => r.value === advancedEditRole)?.label}
+                </span>
+                <p className="text-xs text-muted-foreground font-normal mt-0.5">
+                  {advancedEditRole && ROLE_META[advancedEditRole]?.description}
+                </p>
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+
+          {advancedEditRole && (
+            <div className="space-y-4 mt-2">
+              {/* Quick actions */}
+              <div className="flex items-center gap-2 pb-3 border-b border-border">
+                <Button size="sm" variant="outline" className="gap-1.5 text-xs" onClick={() => enableAllForRole(advancedEditRole)}>
+                  <CheckCheck className="h-3.5 w-3.5" /> Enable All
+                </Button>
+                <Button size="sm" variant="outline" className="gap-1.5 text-xs" onClick={() => disableAllForRole(advancedEditRole)}>
+                  <XCircle className="h-3.5 w-3.5" /> Disable All
+                </Button>
+                <div className="ml-auto text-xs text-muted-foreground">
+                  {(localAccess[advancedEditRole] ?? []).length}/{totalModules} enabled
+                </div>
+              </div>
+
+              {/* Group-by-group module list */}
+              {groups.map((group) => {
+                const modules = ALL_MODULES.filter((m) => m.group === group);
+                const currentRoleModules = localAccess[advancedEditRole] ?? [];
+                const groupModuleValues = modules.map((m) => m.value);
+                const allGroupEnabled = groupModuleValues.every((m) => currentRoleModules.includes(m));
+                const someGroupEnabled = groupModuleValues.some((m) => currentRoleModules.includes(m));
+                const GroupIcon = GROUP_ICONS[group] ?? Settings;
+
+                return (
+                  <div key={group} className="rounded-lg border border-border overflow-hidden">
+                    <div
+                      className="flex items-center justify-between p-3 bg-muted/30 cursor-pointer hover:bg-muted/50 transition-colors"
+                      onClick={() => toggleGroupForRole(advancedEditRole, group)}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center">
+                          <GroupIcon className="h-3.5 w-3.5 text-primary" />
+                        </div>
+                        <span className="text-sm font-semibold text-foreground">{group}</span>
+                        <Badge variant="secondary" className="text-[10px]">
+                          {groupModuleValues.filter((m) => currentRoleModules.includes(m)).length}/{modules.length}
+                        </Badge>
+                      </div>
+                      <Checkbox
+                        checked={allGroupEnabled}
+                        className={someGroupEnabled && !allGroupEnabled ? "opacity-60" : ""}
+                        onCheckedChange={() => toggleGroupForRole(advancedEditRole, group)}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </div>
+                    <div className="divide-y divide-border/50">
+                      {modules.map((mod) => {
+                        const enabled = currentRoleModules.includes(mod.value);
+                        const ModIcon = MODULE_ICONS[mod.value] ?? Settings;
+                        return (
+                          <div
+                            key={mod.value}
+                            className={cn(
+                              "flex items-center justify-between px-4 py-2.5 cursor-pointer transition-colors",
+                              enabled ? "bg-primary/5 hover:bg-primary/10" : "hover:bg-muted/30"
+                            )}
+                            onClick={() => toggleModuleForRole(advancedEditRole, mod.value)}
+                          >
+                            <div className="flex items-center gap-3">
+                              <ModIcon className={cn("h-4 w-4", enabled ? "text-primary" : "text-muted-foreground")} />
+                              <span className={cn("text-sm", enabled ? "text-foreground font-medium" : "text-muted-foreground")}>
+                                {mod.label}
+                              </span>
+                            </div>
+                            <Checkbox
+                              checked={enabled}
+                              onCheckedChange={() => toggleModuleForRole(advancedEditRole, mod.value)}
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
