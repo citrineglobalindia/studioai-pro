@@ -328,7 +328,8 @@ export default function ClientDetailPage() {
           </TabsList>
 
           {/* ═══ Invoices Tab ═══ */}
-          <TabsContent value="invoices" className="mt-5 space-y-4">
+          <div className="p-5">
+          <TabsContent value="invoices" className="mt-0 space-y-4">
             {/* Invoice Summary */}
             <div className="grid grid-cols-3 gap-3">
               {[
