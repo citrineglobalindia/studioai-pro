@@ -98,9 +98,14 @@ const AccountsPage = () => {
   const [expPaidTo, setExpPaidTo] = useState("");
   const [expNotes, setExpNotes] = useState("");
   const [expSubmittedBy, setExpSubmittedBy] = useState(currentRole || "Staff");
+  const [expReceiptFile, setExpReceiptFile] = useState<File | null>(null);
+  const [expReceiptPreview, setExpReceiptPreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   // Approval dialog
   const [approvalExpense, setApprovalExpense] = useState<Expense | null>(null);
+  // Receipt viewer
+  const [viewReceiptUrl, setViewReceiptUrl] = useState<string | null>(null);
 
   // Fetch expenses
   const fetchExpenses = async () => {
