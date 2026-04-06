@@ -5,6 +5,7 @@ import {
   UserPlus,
   FolderKanban,
   CalendarDays,
+  CalendarCheck,
   FileText,
   CreditCard,
   LayoutDashboard,
