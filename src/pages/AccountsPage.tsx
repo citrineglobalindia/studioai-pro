@@ -25,6 +25,7 @@ import {
   Plus, CalendarDays, Building2, Banknote, Smartphone, Eye,
   ThumbsUp, ThumbsDown, Wallet, BookOpen, Filter,
   BarChart3, PieChart, ArrowDownRight, ArrowUpDown, X, Check,
+  Upload, Image, Loader2, ExternalLink,
 } from "lucide-react";
 
 // ─── Types ───
@@ -97,9 +98,14 @@ const AccountsPage = () => {
   const [expPaidTo, setExpPaidTo] = useState("");
   const [expNotes, setExpNotes] = useState("");
   const [expSubmittedBy, setExpSubmittedBy] = useState(currentRole || "Staff");
+  const [expReceiptFile, setExpReceiptFile] = useState<File | null>(null);
+  const [expReceiptPreview, setExpReceiptPreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   // Approval dialog
   const [approvalExpense, setApprovalExpense] = useState<Expense | null>(null);
+  // Receipt viewer
+  const [viewReceiptUrl, setViewReceiptUrl] = useState<string | null>(null);
 
   // Fetch expenses
   const fetchExpenses = async () => {
@@ -121,6 +127,29 @@ const AccountsPage = () => {
       toast.error("Fill all required fields");
       return;
     }
+
+    let receiptUrl: string | null = null;
+
+    // Upload receipt if attached
+    if (expReceiptFile) {
+      setUploading(true);
+      const fileExt = expReceiptFile.name.split(".").pop();
+      const filePath = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage
+        .from("expense-receipts")
+        .upload(filePath, expReceiptFile);
+      if (uploadError) {
+        toast.error("Failed to upload receipt");
+        setUploading(false);
+        return;
+      }
+      const { data: urlData } = supabase.storage
+        .from("expense-receipts")
+        .getPublicUrl(filePath);
+      receiptUrl = urlData.publicUrl;
+      setUploading(false);
+    }
+
     const { error } = await supabase.from("expenses").insert({
       client_name: expClient,
       event_name: expEvent || null,
@@ -131,6 +160,7 @@ const AccountsPage = () => {
       submitted_by: expSubmittedBy,
       paid_to: expPaidTo || null,
       notes: expNotes || null,
+      receipt_url: receiptUrl,
     });
     if (error) { toast.error("Failed to submit expense"); return; }
     toast.success("Expense submitted for approval!");
@@ -142,6 +172,20 @@ const AccountsPage = () => {
   const resetExpenseForm = () => {
     setExpClient(""); setExpEvent(""); setExpProject(""); setExpCategory("");
     setExpDescription(""); setExpAmount(""); setExpPaidTo(""); setExpNotes("");
+    setExpReceiptFile(null); setExpReceiptPreview(null);
+  };
+
+  const handleReceiptSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("File too large. Max 10MB.");
+      return;
+    }
+    setExpReceiptFile(file);
+    const reader = new FileReader();
+    reader.onload = () => setExpReceiptPreview(reader.result as string);
+    reader.readAsDataURL(file);
   };
 
   // Approve / Reject
@@ -521,6 +565,7 @@ const AccountsPage = () => {
                     <TableHead>Client / Event</TableHead>
                     <TableHead>Category</TableHead>
                     <TableHead>Amount</TableHead>
+                    <TableHead>Receipt</TableHead>
                     <TableHead>Submitted By</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead>Status</TableHead>
@@ -529,7 +574,7 @@ const AccountsPage = () => {
                 </TableHeader>
                 <TableBody>
                   {filteredExpenses.length === 0 && (
-                    <TableRow><TableCell colSpan={isAdmin ? 8 : 7} className="text-center text-muted-foreground py-8">No expenses found</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={isAdmin ? 9 : 8} className="text-center text-muted-foreground py-8">No expenses found</TableCell></TableRow>
                   )}
                   {filteredExpenses.map((e) => (
                     <TableRow key={e.id}>
@@ -543,6 +588,18 @@ const AccountsPage = () => {
                       </TableCell>
                       <TableCell><Badge variant="secondary" className="text-[10px]">{e.category}</Badge></TableCell>
                       <TableCell className="text-sm font-bold">{fmt(Number(e.amount))}</TableCell>
+                      <TableCell>
+                        {(e as any).receipt_url ? (
+                          <button
+                            onClick={() => setViewReceiptUrl((e as any).receipt_url)}
+                            className="h-8 w-8 rounded-lg border border-border overflow-hidden hover:ring-2 hover:ring-primary/30 transition-all"
+                          >
+                            <img src={(e as any).receipt_url} alt="Receipt" className="h-full w-full object-cover" />
+                          </button>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
                       <TableCell className="text-sm text-muted-foreground">{e.submitted_by}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">{e.expense_date}</TableCell>
                       <TableCell><Badge variant="outline" className={cn("text-[10px]", statusColors[e.approval_status])}>{e.approval_status}</Badge></TableCell>
@@ -745,6 +802,28 @@ const AccountsPage = () => {
               <Textarea placeholder="Additional details..." value={expNotes} onChange={(e) => setExpNotes(e.target.value)} />
             </div>
 
+            {/* Receipt Upload */}
+            <div className="space-y-2">
+              <Label className="flex items-center gap-1"><Image className="h-3.5 w-3.5" /> Receipt / Bill Photo</Label>
+              {!expReceiptPreview ? (
+                <label className="flex flex-col items-center justify-center gap-2 p-4 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary/40 hover:bg-muted/30 transition-colors">
+                  <Upload className="h-6 w-6 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground">Click to upload receipt (JPG, PNG, PDF · Max 10MB)</span>
+                  <input type="file" accept="image/*,.pdf" className="hidden" onChange={handleReceiptSelect} />
+                </label>
+              ) : (
+                <div className="relative">
+                  <img src={expReceiptPreview} alt="Receipt preview" className="w-full h-40 object-cover rounded-lg border border-border" />
+                  <div className="absolute top-2 right-2 flex gap-1">
+                    <Button size="sm" variant="secondary" className="h-7 w-7 p-0" onClick={() => { setExpReceiptFile(null); setExpReceiptPreview(null); }}>
+                      <X className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground mt-1">{expReceiptFile?.name} · {((expReceiptFile?.size || 0) / 1024).toFixed(0)} KB</p>
+                </div>
+              )}
+            </div>
+
             {/* Summary */}
             {expAmount && (
               <Card className="bg-muted/30">
@@ -755,17 +834,46 @@ const AccountsPage = () => {
                     <span className="text-sm font-bold">{fmt(parseFloat(expAmount) || 0)}</span>
                   </div>
                   <p className="text-xs text-muted-foreground">Client: {expClient || "—"} · Category: {expCategory || "—"}</p>
+                  {expReceiptFile && <p className="text-[10px] text-emerald-500 flex items-center gap-1"><Check className="h-3 w-3" /> Receipt attached</p>}
                   <Badge variant="outline" className={statusColors.pending + " text-[10px] mt-1"}>Will be sent for approval</Badge>
                 </CardContent>
               </Card>
             )}
 
-            <Button className="w-full" onClick={handleSubmitExpense}>
-              <Plus className="h-4 w-4 mr-1" /> Submit Expense
+            <Button className="w-full" onClick={handleSubmitExpense} disabled={uploading}>
+              {uploading ? <><Loader2 className="h-4 w-4 mr-1 animate-spin" /> Uploading...</> : <><Plus className="h-4 w-4 mr-1" /> Submit Expense</>}
             </Button>
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* ═══ RECEIPT VIEWER DIALOG ═══ */}
+      <Dialog open={!!viewReceiptUrl} onOpenChange={(o) => !o && setViewReceiptUrl(null)}>
+        <DialogContent className="sm:max-w-lg p-0 overflow-hidden">
+          <DialogHeader className="p-4 pb-0">
+            <DialogTitle className="flex items-center gap-2">
+              <Image className="h-4 w-4 text-primary" /> Receipt / Bill
+            </DialogTitle>
+          </DialogHeader>
+          {viewReceiptUrl && (
+            <div className="p-4 pt-2 space-y-3">
+              <img src={viewReceiptUrl} alt="Receipt" className="w-full max-h-[60vh] object-contain rounded-lg border border-border bg-muted/20" />
+              <div className="flex gap-2">
+                <Button size="sm" variant="outline" className="flex-1" asChild>
+                  <a href={viewReceiptUrl} target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="h-3.5 w-3.5 mr-1" /> Open Full Size
+                  </a>
+                </Button>
+                <Button size="sm" variant="outline" className="flex-1" asChild>
+                  <a href={viewReceiptUrl} download>
+                    <Download className="h-3.5 w-3.5 mr-1" /> Download
+                  </a>
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
