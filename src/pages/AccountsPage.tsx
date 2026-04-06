@@ -565,6 +565,7 @@ const AccountsPage = () => {
                     <TableHead>Client / Event</TableHead>
                     <TableHead>Category</TableHead>
                     <TableHead>Amount</TableHead>
+                    <TableHead>Receipt</TableHead>
                     <TableHead>Submitted By</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead>Status</TableHead>
@@ -573,7 +574,7 @@ const AccountsPage = () => {
                 </TableHeader>
                 <TableBody>
                   {filteredExpenses.length === 0 && (
-                    <TableRow><TableCell colSpan={isAdmin ? 8 : 7} className="text-center text-muted-foreground py-8">No expenses found</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={isAdmin ? 9 : 8} className="text-center text-muted-foreground py-8">No expenses found</TableCell></TableRow>
                   )}
                   {filteredExpenses.map((e) => (
                     <TableRow key={e.id}>
@@ -587,6 +588,18 @@ const AccountsPage = () => {
                       </TableCell>
                       <TableCell><Badge variant="secondary" className="text-[10px]">{e.category}</Badge></TableCell>
                       <TableCell className="text-sm font-bold">{fmt(Number(e.amount))}</TableCell>
+                      <TableCell>
+                        {(e as any).receipt_url ? (
+                          <button
+                            onClick={() => setViewReceiptUrl((e as any).receipt_url)}
+                            className="h-8 w-8 rounded-lg border border-border overflow-hidden hover:ring-2 hover:ring-primary/30 transition-all"
+                          >
+                            <img src={(e as any).receipt_url} alt="Receipt" className="h-full w-full object-cover" />
+                          </button>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
                       <TableCell className="text-sm text-muted-foreground">{e.submitted_by}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">{e.expense_date}</TableCell>
                       <TableCell><Badge variant="outline" className={cn("text-[10px]", statusColors[e.approval_status])}>{e.approval_status}</Badge></TableCell>
