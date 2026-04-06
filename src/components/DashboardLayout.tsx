@@ -6,12 +6,6 @@ import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import { RoleSwitcher } from "@/components/RoleSwitcher";
 import { FloatingAIButton } from "@/components/FloatingAIButton";
 import { useNavigate } from "react-router-dom";
-import { AppSidebar } from "@/components/AppSidebar";
-import { Bell, Search } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { ThemeSwitcher } from "@/components/ThemeSwitcher";
-import { RoleSwitcher } from "@/components/RoleSwitcher";
-import { useNavigate } from "react-router-dom";
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
