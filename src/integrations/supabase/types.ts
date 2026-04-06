@@ -14,7 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      albums: {
+        Row: {
+          album_type: string
+          client_name: string
+          created_at: string
+          designer: string | null
+          id: string
+          notes: string | null
+          pages: number | null
+          pdf_file_name: string | null
+          pdf_file_path: string | null
+          pdf_file_size: number | null
+          project_name: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          album_type?: string
+          client_name: string
+          created_at?: string
+          designer?: string | null
+          id?: string
+          notes?: string | null
+          pages?: number | null
+          pdf_file_name?: string | null
+          pdf_file_path?: string | null
+          pdf_file_size?: number | null
+          project_name: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          album_type?: string
+          client_name?: string
+          created_at?: string
+          designer?: string | null
+          id?: string
+          notes?: string | null
+          pages?: number | null
+          pdf_file_name?: string | null
+          pdf_file_path?: string | null
+          pdf_file_size?: number | null
+          project_name?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
