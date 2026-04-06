@@ -90,6 +90,7 @@ export default function AccessControlPage() {
   const [viewMode, setViewMode] = useState<ViewMode>("cards");
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
   const [hasChanges, setHasChanges] = useState(false);
+  const [advancedEditRole, setAdvancedEditRole] = useState<AppRole | null>(null);
 
   const nonAdminRoles = ALL_ROLES.filter((r) => r.value !== "admin");
   const groups = [...new Set(ALL_MODULES.map((m) => m.group))];
