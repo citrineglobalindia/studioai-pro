@@ -159,9 +159,14 @@ export default function EventsPage() {
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-6xl mx-auto">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Events</h1>
-        <p className="text-sm text-muted-foreground mt-1">Manage all client events & assign your team</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Events</h1>
+          <p className="text-sm text-muted-foreground mt-1">Manage all client events & assign your team</p>
+        </div>
+        <Button className="gap-2" onClick={() => setAddEventOpen(true)}>
+          <Plus className="h-4 w-4" /> Add Event
+        </Button>
       </div>
 
       {/* Stats */}
