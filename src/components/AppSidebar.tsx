@@ -59,7 +59,9 @@ const operationsItems = [
 ];
 
 const financeItems = [
+  { title: "Accounts", url: "/accounts", icon: Wallet },
   { title: "Invoices", url: "/invoices", icon: CreditCard },
+  { title: "Quotations", url: "/quotations", icon: FileText },
   { title: "Contracts", url: "/contracts", icon: Briefcase },
 ];
 
@@ -78,7 +80,6 @@ const hrItems = [
 
 const systemItems = [
   { title: "Notifications", url: "/notifications", icon: Bell },
-  { title: "Accounts", url: "/accounts", icon: Wallet },
   { title: "Access Control", url: "/access-control", icon: Shield },
 ];
 
