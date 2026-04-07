@@ -143,7 +143,7 @@ export default function LandingPage() {
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="sm" onClick={() => navigate("/auth")} className="text-white/70 hover:text-white hover:bg-white/10">Log in</Button>
             <Button size="sm" onClick={() => navigate("/auth?mode=signup")} className="gap-1 text-white border-0" style={{ background: "linear-gradient(135deg, #a855f7, #3b82f6)" }}>
-              Start Free Trial <ArrowRight className="h-3.5 w-3.5" />
+              Enquire Now <ArrowRight className="h-3.5 w-3.5" />
             </Button>
           </div>
         </div>
@@ -183,7 +183,7 @@ export default function LandingPage() {
                 className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
               >
                 <Button size="lg" onClick={() => navigate("/auth?mode=signup")} className="text-base px-8 h-12 gap-2 text-white border-0" style={{ background: "linear-gradient(135deg, #a855f7, #3b82f6)" }}>
-                  Start 14-Day Free Trial <ArrowRight className="h-4 w-4" />
+                  Enquire Now <ArrowRight className="h-4 w-4" />
                 </Button>
                 <Button size="lg" variant="outline" className="text-base px-8 h-12 gap-2 text-white" style={{ borderColor: "rgba(168,85,247,0.3)", background: "rgba(168,85,247,0.08)" }}>
                   <Play className="h-4 w-4" /> Watch Demo
@@ -343,7 +343,7 @@ export default function LandingPage() {
 
           <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
             {[
-              { name: "Starter", price: "Free", period: "14 days", desc: "Perfect for trying out StudioAi", features: ["Up to 10 clients", "Basic CRM & leads", "5 projects", "1 team member", "Email support"], cta: "Start Free Trial", popular: false },
+              { name: "Starter", price: "Free", period: "14 days", desc: "Perfect for trying out StudioAi", features: ["Up to 10 clients", "Basic CRM & leads", "5 projects", "1 team member", "Email support"], cta: "Enquire Now", popular: false },
               { name: "Professional", price: "₹2,999", period: "/month", desc: "For growing photography studios", features: ["Unlimited clients", "Full CRM & automation", "Unlimited projects", "Up to 10 team members", "AI assistant", "Contracts & invoicing", "Priority support"], cta: "Get Started", popular: true },
               { name: "Enterprise", price: "₹7,999", period: "/month", desc: "For large studios & agencies", features: ["Everything in Pro", "Unlimited team members", "White-label branding", "API access", "Custom integrations", "Dedicated account manager", "SSO & advanced security"], cta: "Contact Sales", popular: false },
             ].map((plan, i) => (
@@ -534,10 +534,10 @@ export default function LandingPage() {
             Ready to Transform Your Studio?
           </h2>
           <p className="max-w-lg mx-auto mb-8" style={{ color: "rgba(226,232,240,0.5)" }}>
-            Join 500+ studios already using StudioAi. Start your free trial — no credit card required.
+            Join 500+ studios already using StudioAi. Get in touch with us to learn more.
           </p>
           <Button size="lg" onClick={() => navigate("/auth?mode=signup")} className="text-base px-8 h-12 gap-2 text-white border-0" style={{ background: "linear-gradient(135deg, #a855f7, #3b82f6)" }}>
-            Start Free Trial <ArrowRight className="h-4 w-4" />
+            Enquire Now <ArrowRight className="h-4 w-4" />
           </Button>
         </motion.div>
       </section>
