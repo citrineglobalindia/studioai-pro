@@ -12,7 +12,7 @@ import NotFound from "./pages/NotFound.tsx";
 import Index from "./pages/Index.tsx";
 import AuthPage from "./pages/AuthPage";
 import LandingPage from "./pages/LandingPage";
-import OnboardingPage from "./pages/OnboardingPage";
+
 import ProjectsPage from "./pages/ProjectsPage";
 import ProjectDetailPage from "./pages/ProjectDetailPage";
 import TeamPage from "./pages/TeamPage";
@@ -52,9 +52,8 @@ const queryClient = new QueryClient();
 function ProtectedRoutes() {
   const { user, loading } = useAuth();
   const { roleLoading } = useRole();
-  const { hasOrg, orgLoading } = useOrg();
 
-  if (loading || roleLoading || orgLoading) {
+  if (loading || roleLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center animate-pulse">
@@ -127,7 +126,7 @@ const App = () => (
                 <Routes>
                   <Route path="/landing" element={<LandingPage />} />
                   <Route path="/auth" element={<AuthRoute />} />
-                  <Route path="/onboarding" element={<OnboardingPage />} />
+                  
                   <Route path="/super-admin" element={<SuperAdminPage />} />
                   <Route path="/*" element={<ProtectedRoutes />} />
                 </Routes>
