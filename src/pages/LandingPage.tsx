@@ -279,17 +279,18 @@ export default function LandingPage() {
                 );
               })}
 
-              {/* Tagline */}
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 1.5 }}
-                className="absolute -bottom-2 left-0 right-0 text-center text-[10px] sm:text-xs font-mono tracking-widest uppercase"
-                style={{ color: "rgba(168,85,247,0.6)" }}
-              >
-                All Managed in One Platform
-              </motion.p>
             </motion.div>
+
+            {/* Tagline — below the orbit container */}
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1.5 }}
+              className="text-center lg:text-center mt-4 text-[10px] sm:text-xs font-mono tracking-widest uppercase"
+              style={{ color: "rgba(168,85,247,0.6)" }}
+            >
+              All Managed in One Platform
+            </motion.p>
           </div>
         </div>
       </section>
