@@ -328,25 +328,25 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── Pricing ── */}
+      {/* ── Plans ── */}
       <section id="pricing" className="py-24 px-6 relative z-10">
         <div className="absolute inset-0" style={{ background: "rgba(15,12,41,0.4)" }} />
         <div className="max-w-6xl mx-auto relative">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="text-center mb-16">
-            <Badge className="mb-4 px-3 py-1 text-xs border-0" style={{ background: "rgba(236,72,153,0.15)", color: "#f9a8d4" }}>Pricing</Badge>
+            <Badge className="mb-4 px-3 py-1 text-xs border-0" style={{ background: "rgba(236,72,153,0.15)", color: "#f9a8d4" }}>Plans</Badge>
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4 text-white" style={{ fontFamily: "var(--font-display)" }}>
               Plans That Grow With You
             </h2>
             <p className="max-w-xl mx-auto" style={{ color: "rgba(226,232,240,0.5)" }}>
-              Start free, upgrade as your studio grows. No hidden fees.
+              Flexible plans for every studio size. Enquire to find the right fit.
             </p>
           </motion.div>
 
           <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
             {[
-              { name: "Starter", price: "Free", period: "14 days", desc: "Perfect for trying out StudioAi", features: ["Up to 10 clients", "Basic CRM & leads", "5 projects", "1 team member", "Email support"], cta: "Enquire Now", popular: false },
-              { name: "Professional", price: "₹2,999", period: "/month", desc: "For growing photography studios", features: ["Unlimited clients", "Full CRM & automation", "Unlimited projects", "Up to 10 team members", "AI assistant", "Contracts & invoicing", "Priority support"], cta: "Get Started", popular: true },
-              { name: "Enterprise", price: "₹7,999", period: "/month", desc: "For large studios & agencies", features: ["Everything in Pro", "Unlimited team members", "White-label branding", "API access", "Custom integrations", "Dedicated account manager", "SSO & advanced security"], cta: "Contact Sales", popular: false },
+              { name: "Starter", desc: "Perfect for trying out StudioAi", features: ["Up to 10 clients", "Basic CRM & leads", "5 projects", "1 team member", "Email support"], popular: false },
+              { name: "Professional", desc: "For growing photography studios", features: ["Unlimited clients", "Full CRM & automation", "Unlimited projects", "Up to 10 team members", "AI assistant", "Contracts & invoicing", "Priority support"], popular: true },
+              { name: "Enterprise", desc: "For large studios & agencies", features: ["Everything in Pro", "Unlimited team members", "White-label branding", "API access", "Custom integrations", "Dedicated account manager", "SSO & advanced security"], popular: false },
             ].map((plan, i) => (
               <motion.div key={plan.name} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={i}>
                 <Card
@@ -365,11 +365,7 @@ export default function LandingPage() {
                   )}
                   <CardContent className="p-6 pt-8 flex flex-col h-full">
                     <h3 className="text-lg font-bold text-white">{plan.name}</h3>
-                    <p className="text-sm mt-1" style={{ color: "rgba(226,232,240,0.5)" }}>{plan.desc}</p>
-                    <div className="mt-5 mb-6">
-                      <span className="text-3xl font-extrabold text-white">{plan.price}</span>
-                      <span className="text-sm" style={{ color: "rgba(226,232,240,0.5)" }}>{plan.period}</span>
-                    </div>
+                    <p className="text-sm mt-1 mb-6" style={{ color: "rgba(226,232,240,0.5)" }}>{plan.desc}</p>
                     <ul className="space-y-3 flex-1">
                       {plan.features.map((f) => (
                         <li key={f} className="flex items-start gap-2 text-sm">
@@ -386,7 +382,7 @@ export default function LandingPage() {
                       }}
                       onClick={() => navigate("/auth?mode=signup")}
                     >
-                      {plan.cta} <ChevronRight className="h-4 w-4 ml-1" />
+                      Enquire Now <ChevronRight className="h-4 w-4 ml-1" />
                     </Button>
                   </CardContent>
                 </Card>
