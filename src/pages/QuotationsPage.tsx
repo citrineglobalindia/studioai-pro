@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
-import { Badge } from "@/components/ui/badge";
+import { useQuotations } from "@/hooks/useQuotations";
+import { useOrg } from "@/contexts/OrgContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -188,9 +189,10 @@ const cardVariants = {
 
 // ─── Component ───
 export default function QuotationsPage() {
+  const { organization } = useOrg();
+  const { quotations: dbQuotations, isLoading, createQuotation, updateQuotation } = useQuotations();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [quotations, setQuotations] = useState<Quotation[]>(sampleQuotations);
   const [selectedPkg, setSelectedPkg] = useState<StudioPackage | null>(null);
   const [selectedQuotation, setSelectedQuotation] = useState<Quotation | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
