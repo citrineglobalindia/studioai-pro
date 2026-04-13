@@ -27,7 +27,7 @@ export interface InvoiceRow {
 }
 
 export function useInvoices() {
-  const { currentOrg } = useOrg();
+  const { organization } = useOrg();
   const qc = useQueryClient();
   const orgId = organization?.id;
 
