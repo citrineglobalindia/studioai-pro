@@ -94,32 +94,28 @@ const LeadsPage = () => {
       toast.error("Name and phone are required");
       return;
     }
-    const lead: Lead = {
-      id: `l-${Date.now()}`,
-      serialNo: `LD${1556 + leads.length}`,
+    addLead.mutate({
       name: newLead.name,
       phone: newLead.phone,
-      email: newLead.email || undefined,
-      company: newLead.company || undefined,
-      city: newLead.city || undefined,
+      email: newLead.email || null,
+      city: newLead.city || null,
       source: newLead.source,
-      stage: "new",
-      eventType: newLead.eventType,
-      eventDate: newLead.eventDate || undefined,
-      budget: newLead.budget ? parseInt(newLead.budget) : undefined,
-      notes: newLead.notes || undefined,
-      assignedTo: newLead.assignedTo || undefined,
-      createdAt: new Date().toISOString().split("T")[0],
-    };
-    setLeads((prev) => [lead, ...prev]);
+      status: "new",
+      event_type: newLead.eventType,
+      event_date: newLead.eventDate || null,
+      budget: newLead.budget ? parseInt(newLead.budget) : null,
+      notes: newLead.notes || null,
+      assigned_to: newLead.assignedTo || null,
+      follow_up_date: null,
+      converted_client_id: null,
+    });
     setAddLeadOpen(false);
     setNewLead({ name: "", phone: "", email: "", company: "", city: "", source: "instagram", eventType: "wedding", eventDate: "", budget: "", notes: "", assignedTo: "" });
-    toast.success("New lead added!");
   };
 
-  const newLeads = leads.filter((l) => l.stage === "new").length;
-  const followUps = leads.filter((l) => l.stage === "contacted").length;
-  const converted = leads.filter((l) => l.stage === "converted").length;
+  const newLeads = leads.filter((l) => l.status === "new").length;
+  const followUps = leads.filter((l) => l.status === "contacted").length;
+  const converted = leads.filter((l) => l.status === "converted").length;
   const totalLeads = leads.length;
 
   const toggleSelectAll = () => {
