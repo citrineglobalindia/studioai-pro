@@ -558,12 +558,12 @@ const Index = () => {
           ]}
         />
         <MiniPieCard
-          title="Project Types"
-          subtitle="Event category mix"
+          title="Event Types"
+          subtitle="Sub-event category mix"
           data={(() => {
-            const typeColors: Record<string, string> = { Wedding: "#c4973b", "Pre-Wedding": "#8b5cf6", Reception: "#3b82f6", Engagement: "#ec4899", "Haldi": "#f59e0b", "Sangeet": "#f97316", "Mehendi": "#10b981" };
+            const typeColors: Record<string, string> = { Wedding: "#c4973b", "Pre-Wedding Shoot": "#8b5cf6", Reception: "#3b82f6", Engagement: "#ec4899", "Haldi Ceremony": "#f59e0b", Sangeet: "#f97316", "Mehendi Night": "#10b981" };
             const counts: Record<string, number> = {};
-            sampleProjects.forEach((p) => { counts[p.eventType] = (counts[p.eventType] || 0) + 1; });
+            allSubEvents.forEach((se) => { const n = se.name.split(" - ")[0] || se.name; counts[n] = (counts[n] || 0) + 1; });
             return Object.entries(counts).map(([name, value]) => ({ name, value, color: typeColors[name] || "#8b5cf6" }));
           })()}
         />
