@@ -3,9 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -17,7 +15,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { sampleProjects, sampleTeamMembers, type WeddingProject } from "@/data/wedding-types";
 import { useNavigate } from "react-router-dom";
 import { motion, useMotionValue, useTransform, animate, useInView } from "framer-motion";
 import { toast } from "sonner";
@@ -25,26 +22,24 @@ import { cn } from "@/lib/utils";
 import {
   CalendarDays, MapPin, Users, IndianRupee, Plus, Search, Filter,
   LayoutGrid, List, SlidersHorizontal, X, ChevronRight, MoreVertical,
-  TrendingUp, FolderKanban, Download, Upload, Trash2, Eye, Pencil,
-  Package, Clock, CheckCircle2, AlertCircle, Sparkles,
+  TrendingUp, FolderKanban, Download, Trash2, Eye, Pencil,
+  Package, Clock, CheckCircle2, Sparkles,
 } from "lucide-react";
+import { useProjects, type Project } from "@/hooks/useProjects";
+import { useTeamMembers } from "@/hooks/useTeamMembers";
+import { useOrg } from "@/contexts/OrgContext";
+import { useClients } from "@/hooks/useClients";
 
 const statusConfig: Record<string, { label: string; class: string; icon: typeof Clock; accent: string }> = {
-  inquiry: { label: "Inquiry", class: "bg-muted text-muted-foreground border-border", icon: Sparkles, accent: "from-muted-foreground/20 to-muted/5" },
+  planning: { label: "Planning", class: "bg-muted text-muted-foreground border-border", icon: Sparkles, accent: "from-muted-foreground/20 to-muted/5" },
   booked: { label: "Booked", class: "bg-primary/20 text-primary border-primary/30", icon: CheckCircle2, accent: "from-primary/20 to-primary/5" },
-  "in-progress": { label: "In Progress", class: "bg-blue-500/20 text-blue-400 border-blue-500/30", icon: Clock, accent: "from-blue-500/20 to-blue-500/5" },
+  in_progress: { label: "In Progress", class: "bg-blue-500/20 text-blue-400 border-blue-500/30", icon: Clock, accent: "from-blue-500/20 to-blue-500/5" },
   editing: { label: "Editing", class: "bg-purple-500/20 text-purple-400 border-purple-500/30", icon: Pencil, accent: "from-purple-500/20 to-purple-500/5" },
   delivered: { label: "Delivered", class: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30", icon: Package, accent: "from-emerald-500/20 to-emerald-500/5" },
   completed: { label: "Completed", class: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30", icon: CheckCircle2, accent: "from-emerald-500/20 to-emerald-500/5" },
 };
 
-const packages = ["Basic Package", "Standard Package", "Premium Package", "Royal Wedding Package", "Destination Wedding Package"];
-
-const containerVariants = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.06, delayChildren: 0.05 } },
-} as const;
-
+const containerVariants = { hidden: {}, visible: { transition: { staggerChildren: 0.06, delayChildren: 0.05 } } } as const;
 const cardVariants = {
   hidden: { opacity: 0, y: 20, scale: 0.97 },
   visible: { opacity: 1, y: 0, scale: 1, transition: { type: "spring" as const, stiffness: 220, damping: 22 } },
@@ -62,7 +57,10 @@ const AnimatedNumber = ({ value, delay = 0, prefix = "", suffix = "" }: { value:
 
 const ProjectsPage = () => {
   const navigate = useNavigate();
-  const [projects, setProjects] = useState(sampleProjects);
+  const { organization } = useOrg();
+  const { projects, isLoading, addProject, deleteProject } = useProjects();
+  const { members: teamMembers } = useTeamMembers();
+  const { clients } = useClients();
   const [addOpen, setAddOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
@@ -71,59 +69,73 @@ const ProjectsPage = () => {
   const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
   const [filterOpen, setFilterOpen] = useState(false);
   const [form, setForm] = useState({
-    clientName: "", partnerName: "", clientPhone: "", weddingDate: "",
-    city: "", venue: "", package: "Standard Package", totalAmount: "",
-    status: "inquiry" as WeddingProject["status"],
-    selectedTeam: [] as string[],
-    notes: "",
+    project_name: "", client_id: "", event_type: "Wedding", event_date: "",
+    venue: "", total_amount: "", status: "planning",
+    assigned_team: [] as string[], notes: "",
   });
 
   const filtered = useMemo(() => {
     let result = projects.filter((p) => {
-      const matchSearch = `${p.clientName} ${p.partnerName} ${p.city} ${p.venue}`.toLowerCase().includes(search.toLowerCase());
+      const clientName = p.client?.name || "";
+      const partnerName = p.client?.partner_name || "";
+      const matchSearch = `${p.project_name} ${clientName} ${partnerName} ${p.venue || ""}`.toLowerCase().includes(search.toLowerCase());
       const matchStatus = filterStatus === "all" || p.status === filterStatus;
       return matchSearch && matchStatus;
     });
-    if (sortBy === "amount") result.sort((a, b) => b.totalAmount - a.totalAmount);
-    else if (sortBy === "name") result.sort((a, b) => a.clientName.localeCompare(b.clientName));
-    else result.sort((a, b) => new Date(b.weddingDate).getTime() - new Date(a.weddingDate).getTime());
+    if (sortBy === "amount") result.sort((a, b) => (b.total_amount || 0) - (a.total_amount || 0));
+    else if (sortBy === "name") result.sort((a, b) => a.project_name.localeCompare(b.project_name));
+    else result.sort((a, b) => new Date(b.event_date || b.created_at).getTime() - new Date(a.event_date || a.created_at).getTime());
     return result;
   }, [projects, search, filterStatus, sortBy]);
 
-  const totalRevenue = projects.reduce((s, p) => s + p.totalAmount, 0);
-  const totalCollected = projects.reduce((s, p) => s + p.paidAmount, 0);
-  const activeCount = projects.filter((p) => ["booked", "in-progress", "editing"].includes(p.status)).length;
+  const totalRevenue = projects.reduce((s, p) => s + (p.total_amount || 0), 0);
+  const totalCollected = projects.reduce((s, p) => s + (p.amount_paid || 0), 0);
+  const activeCount = projects.filter((p) => ["booked", "in_progress", "editing"].includes(p.status)).length;
   const completedCount = projects.filter((p) => ["delivered", "completed"].includes(p.status)).length;
 
-  const toggleTeam = (id: string) => setForm((p) => ({ ...p, selectedTeam: p.selectedTeam.includes(id) ? p.selectedTeam.filter((t) => t !== id) : [...p.selectedTeam, id] }));
+  const toggleTeam = (name: string) => setForm((p) => ({ ...p, assigned_team: p.assigned_team.includes(name) ? p.assigned_team.filter((t) => t !== name) : [...p.assigned_team, name] }));
   const toggleSelect = (id: string) => setSelectedProjects((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
   const toggleSelectAll = () => setSelectedProjects(selectedProjects.length === filtered.length ? [] : filtered.map((p) => p.id));
 
   const handleAdd = () => {
-    if (!form.clientName || !form.partnerName || !form.weddingDate) { toast.error("Client name, partner name, and wedding date are required"); return; }
-    const project: WeddingProject = {
-      id: `p-${Date.now()}`, clientName: form.clientName, partnerName: form.partnerName,
-      clientPhone: form.clientPhone, weddingDate: form.weddingDate, city: form.city, venue: form.venue,
-      status: form.status, package: form.package, totalAmount: parseInt(form.totalAmount) || 0,
-      paidAmount: 0, subEvents: [], footage: [], payments: [],
-      team: sampleTeamMembers.filter((m) => form.selectedTeam.includes(m.id)),
-      createdAt: new Date().toISOString().split("T")[0],
-    };
-    setProjects((prev) => [project, ...prev]);
+    if (!form.project_name || !organization?.id) { toast.error("Project name is required"); return; }
+    addProject.mutate({
+      organization_id: organization.id,
+      project_name: form.project_name,
+      client_id: form.client_id || null,
+      event_type: form.event_type || null,
+      event_date: form.event_date || null,
+      venue: form.venue || null,
+      status: form.status,
+      total_amount: parseInt(form.total_amount) || 0,
+      amount_paid: 0,
+      assigned_team: form.assigned_team,
+      notes: form.notes || null,
+    });
     setAddOpen(false);
-    setForm({ clientName: "", partnerName: "", clientPhone: "", weddingDate: "", city: "", venue: "", package: "Standard Package", totalAmount: "", status: "inquiry", selectedTeam: [], notes: "" });
-    toast.success("Project created!");
+    setForm({ project_name: "", client_id: "", event_type: "Wedding", event_date: "", venue: "", total_amount: "", status: "planning", assigned_team: [], notes: "" });
   };
 
   const handleBulkDelete = () => {
-    setProjects((prev) => prev.filter((p) => !selectedProjects.includes(p.id)));
-    toast.success(`${selectedProjects.length} projects deleted`);
+    selectedProjects.forEach((id) => deleteProject.mutate(id));
     setSelectedProjects([]);
   };
 
-  const activeFilterCount = filterStatus !== "all" ? 1 : 0;
+  const kanbanStatuses = ["planning", "booked", "in_progress", "editing", "delivered", "completed"];
 
-  const kanbanStatuses = ["inquiry", "booked", "in-progress", "editing", "delivered", "completed"];
+  const getDisplayName = (p: Project) => {
+    if (p.client?.name && p.client?.partner_name) return `${p.client.name} & ${p.client.partner_name}`;
+    if (p.client?.name) return p.client.name;
+    return p.project_name;
+  };
+
+  if (isLoading) {
+    return (
+      <div className="max-w-7xl mx-auto flex items-center justify-center py-20">
+        <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full" />
+      </div>
+    );
+  }
 
   return (
     <motion.div variants={containerVariants} initial="hidden" animate="visible" className="max-w-7xl mx-auto space-y-5">
@@ -139,9 +151,6 @@ const ProjectsPage = () => {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="gap-2 hidden sm:flex">
-            <Download className="h-3.5 w-3.5" /> Export
-          </Button>
           <Button size="sm" className="gap-2 rounded-xl" onClick={() => setAddOpen(true)}>
             <Plus className="h-4 w-4" /> New Project
           </Button>
@@ -177,8 +186,6 @@ const ProjectsPage = () => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Search projects..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 h-9 text-sm" />
         </div>
-
-        {/* View Toggle */}
         <div className="flex rounded-lg border border-border overflow-hidden shrink-0 hidden sm:flex">
           {([
             { value: "grid" as const, icon: LayoutGrid },
@@ -193,8 +200,6 @@ const ProjectsPage = () => {
             </button>
           ))}
         </div>
-
-        {/* Sort */}
         <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
           <SelectTrigger className="w-32 h-9 hidden sm:flex"><SelectValue /></SelectTrigger>
           <SelectContent>
@@ -203,8 +208,6 @@ const ProjectsPage = () => {
             <SelectItem value="name">By Name</SelectItem>
           </SelectContent>
         </Select>
-
-        {/* Status Filter */}
         <Select value={filterStatus} onValueChange={setFilterStatus}>
           <SelectTrigger className="w-32 h-9 hidden sm:flex"><SelectValue placeholder="All" /></SelectTrigger>
           <SelectContent>
@@ -214,12 +217,9 @@ const ProjectsPage = () => {
             ))}
           </SelectContent>
         </Select>
-
-        {/* Mobile Filter */}
         <Sheet open={filterOpen} onOpenChange={setFilterOpen}>
           <Button variant="outline" size="icon" className="sm:hidden h-9 w-9 relative shrink-0" onClick={() => setFilterOpen(true)}>
             <SlidersHorizontal className="h-4 w-4" />
-            {activeFilterCount > 0 && <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">{activeFilterCount}</span>}
           </Button>
           <SheetContent side="bottom" className="rounded-t-3xl pb-8 max-h-[70vh]">
             <SheetHeader className="pb-4">
@@ -237,17 +237,6 @@ const ProjectsPage = () => {
                   ))}
                 </div>
               </div>
-              <div>
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2.5 block">View</label>
-                <div className="flex gap-2">
-                  {([{ value: "grid" as const, label: "Grid" }, { value: "list" as const, label: "List" }, { value: "kanban" as const, label: "Kanban" }]).map((v) => (
-                    <button key={v.value} onClick={() => setViewMode(v.value)}
-                      className={cn("px-3.5 py-2 rounded-full text-xs font-medium border transition-all",
-                        viewMode === v.value ? "bg-primary text-primary-foreground border-primary" : "bg-card text-foreground border-border"
-                      )}>{v.label}</button>
-                  ))}
-                </div>
-              </div>
               <Button className="w-full h-11 rounded-xl font-semibold gap-2" onClick={() => setFilterOpen(false)}>
                 <Filter className="h-4 w-4" /> Show {filtered.length} Projects
               </Button>
@@ -262,7 +251,6 @@ const ProjectsPage = () => {
           <Checkbox checked={selectedProjects.length === filtered.length} onCheckedChange={toggleSelectAll} />
           <span className="text-sm font-medium text-foreground">{selectedProjects.length} selected</span>
           <div className="flex-1" />
-          <Button size="sm" variant="outline" className="gap-1.5 text-xs"><Download className="h-3.5 w-3.5" /> Export</Button>
           <Button size="sm" variant="destructive" className="gap-1.5 text-xs" onClick={handleBulkDelete}><Trash2 className="h-3.5 w-3.5" /> Delete</Button>
         </motion.div>
       )}
@@ -271,7 +259,7 @@ const ProjectsPage = () => {
       {viewMode === "kanban" && (
         <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 overflow-x-auto">
           {kanbanStatuses.map((status) => {
-            const cfg = statusConfig[status];
+            const cfg = statusConfig[status] || statusConfig.planning;
             const items = filtered.filter((p) => p.status === status);
             return (
               <div key={status} className="min-w-[220px]">
@@ -282,27 +270,21 @@ const ProjectsPage = () => {
                 </div>
                 <div className="space-y-2">
                   {items.map((project) => {
-                    const payPct = project.totalAmount > 0 ? Math.round((project.paidAmount / project.totalAmount) * 100) : 0;
+                    const payPct = project.total_amount > 0 ? Math.round((project.amount_paid / project.total_amount) * 100) : 0;
                     return (
                       <motion.div key={project.id} whileTap={{ scale: 0.98 }}
                         onClick={() => navigate(`/projects/${project.id}`)}
                         className="rounded-xl bg-card border border-border p-3 hover:border-primary/30 transition-all cursor-pointer group">
-                        <p className="text-xs font-semibold text-foreground group-hover:text-primary transition-colors truncate">{project.clientName} & {project.partnerName}</p>
-                        <p className="text-[10px] text-muted-foreground mt-1 flex items-center gap-1"><CalendarDays className="h-3 w-3" /> {new Date(project.weddingDate).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}</p>
+                        <p className="text-xs font-semibold text-foreground group-hover:text-primary transition-colors truncate">{getDisplayName(project)}</p>
+                        {project.event_date && (
+                          <p className="text-[10px] text-muted-foreground mt-1 flex items-center gap-1"><CalendarDays className="h-3 w-3" /> {new Date(project.event_date).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}</p>
+                        )}
                         <div className="mt-2">
                           <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
-                            <span>₹{(project.paidAmount / 1000).toFixed(0)}K</span>
+                            <span>₹{((project.amount_paid || 0) / 1000).toFixed(0)}K</span>
                             <span>{payPct}%</span>
                           </div>
                           <Progress value={payPct} className="h-1" />
-                        </div>
-                        <div className="flex -space-x-1 mt-2">
-                          {project.team.slice(0, 3).map((t) => (
-                            <Avatar key={t.id} className="h-5 w-5 border border-background">
-                              <AvatarFallback className="text-[8px] bg-primary/10 text-primary">{t.name.split(" ").map(n => n[0]).join("")}</AvatarFallback>
-                            </Avatar>
-                          ))}
-                          {project.team.length > 3 && <span className="text-[9px] text-muted-foreground ml-1">+{project.team.length - 3}</span>}
                         </div>
                       </motion.div>
                     );
@@ -321,18 +303,16 @@ const ProjectsPage = () => {
       {viewMode === "grid" && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map((project) => {
-            const cfg = statusConfig[project.status];
-            const payPct = project.totalAmount > 0 ? Math.round((project.paidAmount / project.totalAmount) * 100) : 0;
+            const cfg = statusConfig[project.status] || statusConfig.planning;
+            const payPct = project.total_amount > 0 ? Math.round((project.amount_paid / project.total_amount) * 100) : 0;
             const StatusIcon = cfg.icon;
             return (
               <motion.div key={project.id} variants={cardVariants} whileTap={{ scale: 0.98 }}
                 className="rounded-2xl bg-card border border-border overflow-hidden hover:border-primary/30 transition-all cursor-pointer group relative">
                 <div className={cn("h-1", `bg-gradient-to-r ${cfg.accent}`)} />
-                {/* Select checkbox */}
                 <div className="absolute top-3 left-3 z-10" onClick={(e) => e.stopPropagation()}>
                   <Checkbox checked={selectedProjects.includes(project.id)} onCheckedChange={() => toggleSelect(project.id)} />
                 </div>
-                {/* Menu */}
                 <div className="absolute top-3 right-3 z-10" onClick={(e) => e.stopPropagation()}>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -342,45 +322,30 @@ const ProjectsPage = () => {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onClick={() => navigate(`/projects/${project.id}`)}><Eye className="h-3.5 w-3.5 mr-2" /> View</DropdownMenuItem>
-                      <DropdownMenuItem><Pencil className="h-3.5 w-3.5 mr-2" /> Edit</DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem className="text-destructive"><Trash2 className="h-3.5 w-3.5 mr-2" /> Delete</DropdownMenuItem>
+                      <DropdownMenuItem className="text-destructive" onClick={() => deleteProject.mutate(project.id)}><Trash2 className="h-3.5 w-3.5 mr-2" /> Delete</DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
                 <div className="p-4 pt-3" onClick={() => navigate(`/projects/${project.id}`)}>
-                  <div className="flex items-start gap-3 mb-3 ml-7">
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors truncate">{project.clientName} & {project.partnerName}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge variant="outline" className={cn("text-[10px]", cfg.class)}><StatusIcon className="h-3 w-3 mr-1" />{cfg.label}</Badge>
-                        <span className="text-[10px] text-muted-foreground">{project.package}</span>
-                      </div>
+                  <div className="mb-3 ml-7">
+                    <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors truncate">{getDisplayName(project)}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Badge variant="outline" className={cn("text-[10px]", cfg.class)}><StatusIcon className="h-3 w-3 mr-1" />{cfg.label}</Badge>
+                      <span className="text-[10px] text-muted-foreground">{project.event_type}</span>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-2 mb-3">
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground"><CalendarDays className="h-3 w-3 shrink-0" /><span>{new Date(project.weddingDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span></div>
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground"><MapPin className="h-3 w-3 shrink-0" /><span className="truncate">{project.city}</span></div>
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground"><Users className="h-3 w-3 shrink-0" /><span>{project.team.length} crew</span></div>
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground"><CalendarDays className="h-3 w-3 shrink-0" /><span>{project.subEvents.length} events</span></div>
+                    {project.event_date && <div className="flex items-center gap-1.5 text-xs text-muted-foreground"><CalendarDays className="h-3 w-3 shrink-0" /><span>{new Date(project.event_date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span></div>}
+                    {(project.client?.city || project.venue) && <div className="flex items-center gap-1.5 text-xs text-muted-foreground"><MapPin className="h-3 w-3 shrink-0" /><span className="truncate">{project.client?.city || project.venue}</span></div>}
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground"><Users className="h-3 w-3 shrink-0" /><span>{project.assigned_team?.length || 0} crew</span></div>
                   </div>
                   <div className="pt-3 border-t border-border">
                     <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-xs text-muted-foreground">₹{(project.paidAmount / 1000).toFixed(0)}K / ₹{(project.totalAmount / 1000).toFixed(0)}K</span>
+                      <span className="text-xs text-muted-foreground">₹{((project.amount_paid || 0) / 1000).toFixed(0)}K / ₹{((project.total_amount || 0) / 1000).toFixed(0)}K</span>
                       <span className="text-[10px] font-semibold text-foreground">{payPct}%</span>
                     </div>
                     <Progress value={payPct} className="h-1.5" />
-                    <div className="flex items-center justify-between mt-2.5">
-                      <div className="flex -space-x-1.5">
-                        {project.team.slice(0, 4).map((t) => (
-                          <Avatar key={t.id} className="h-6 w-6 border-2 border-background">
-                            <AvatarFallback className="text-[9px] bg-primary/10 text-primary font-medium">{t.name.split(" ").map(n => n[0]).join("")}</AvatarFallback>
-                          </Avatar>
-                        ))}
-                        {project.team.length > 4 && <div className="h-6 w-6 rounded-full bg-muted border-2 border-background flex items-center justify-center text-[9px] text-muted-foreground">+{project.team.length - 4}</div>}
-                      </div>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground/40 group-hover:text-primary transition-colors" />
-                    </div>
                   </div>
                 </div>
               </motion.div>
@@ -398,12 +363,11 @@ const ProjectsPage = () => {
             <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold w-20 hidden sm:block">Status</span>
             <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold w-24 hidden md:block">Date</span>
             <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold w-28 hidden lg:block text-right">Payment</span>
-            <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold w-20 hidden lg:block text-center">Team</span>
             <span className="w-8" />
           </div>
           {filtered.map((project) => {
-            const cfg = statusConfig[project.status];
-            const payPct = project.totalAmount > 0 ? Math.round((project.paidAmount / project.totalAmount) * 100) : 0;
+            const cfg = statusConfig[project.status] || statusConfig.planning;
+            const payPct = project.total_amount > 0 ? Math.round((project.amount_paid / project.total_amount) * 100) : 0;
             return (
               <div key={project.id} onClick={() => navigate(`/projects/${project.id}`)}
                 className="flex items-center gap-3 px-4 py-3 border-b border-border/50 hover:bg-muted/30 cursor-pointer transition-colors group">
@@ -411,24 +375,15 @@ const ProjectsPage = () => {
                   <Checkbox checked={selectedProjects.includes(project.id)} onCheckedChange={() => toggleSelect(project.id)} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors truncate">{project.clientName} & {project.partnerName}</p>
-                  <p className="text-[10px] text-muted-foreground truncate">{project.venue}, {project.city}</p>
+                  <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors truncate">{getDisplayName(project)}</p>
+                  <p className="text-[10px] text-muted-foreground truncate">{project.venue}{project.client?.city ? `, ${project.client.city}` : ""}</p>
                 </div>
                 <div className="w-20 hidden sm:block"><Badge variant="outline" className={cn("text-[10px]", cfg.class)}>{cfg.label}</Badge></div>
-                <div className="w-24 hidden md:block text-xs text-muted-foreground">{new Date(project.weddingDate).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}</div>
+                <div className="w-24 hidden md:block text-xs text-muted-foreground">{project.event_date ? new Date(project.event_date).toLocaleDateString("en-IN", { day: "numeric", month: "short" }) : "—"}</div>
                 <div className="w-28 hidden lg:block text-right">
-                  <span className="text-xs font-medium text-foreground">₹{(project.paidAmount / 1000).toFixed(0)}K</span>
-                  <span className="text-[10px] text-muted-foreground"> / ₹{(project.totalAmount / 1000).toFixed(0)}K</span>
+                  <span className="text-xs font-medium text-foreground">₹{((project.amount_paid || 0) / 1000).toFixed(0)}K</span>
+                  <span className="text-[10px] text-muted-foreground"> / ₹{((project.total_amount || 0) / 1000).toFixed(0)}K</span>
                   <Progress value={payPct} className="h-1 mt-1" />
-                </div>
-                <div className="w-20 hidden lg:flex items-center justify-center">
-                  <div className="flex -space-x-1">
-                    {project.team.slice(0, 3).map((t) => (
-                      <Avatar key={t.id} className="h-6 w-6 border-2 border-background">
-                        <AvatarFallback className="text-[8px] bg-primary/10 text-primary">{t.name.split(" ").map(n => n[0]).join("")}</AvatarFallback>
-                      </Avatar>
-                    ))}
-                  </div>
                 </div>
                 <ChevronRight className="h-4 w-4 text-muted-foreground/40 shrink-0" />
               </div>
@@ -451,41 +406,56 @@ const ProjectsPage = () => {
             <SheetTitle className="flex items-center gap-2"><Plus className="h-4 w-4 text-primary" /> New Wedding Project</SheetTitle>
           </SheetHeader>
           <div className="mt-6 space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5"><Label className="text-xs font-medium">Client Name *</Label><Input placeholder="Bride/Groom" value={form.clientName} onChange={(e) => setForm((p) => ({ ...p, clientName: e.target.value }))} /></div>
-              <div className="space-y-1.5"><Label className="text-xs font-medium">Partner Name *</Label><Input placeholder="Partner" value={form.partnerName} onChange={(e) => setForm((p) => ({ ...p, partnerName: e.target.value }))} /></div>
-              <div className="space-y-1.5"><Label className="text-xs font-medium">Phone</Label><Input placeholder="+91 98765 43210" value={form.clientPhone} onChange={(e) => setForm((p) => ({ ...p, clientPhone: e.target.value }))} /></div>
-              <div className="space-y-1.5"><Label className="text-xs font-medium">Wedding Date *</Label><Input type="date" value={form.weddingDate} onChange={(e) => setForm((p) => ({ ...p, weddingDate: e.target.value }))} /></div>
-              <div className="space-y-1.5"><Label className="text-xs font-medium">City</Label><Input placeholder="City" value={form.city} onChange={(e) => setForm((p) => ({ ...p, city: e.target.value }))} /></div>
-              <div className="space-y-1.5"><Label className="text-xs font-medium">Venue</Label><Input placeholder="Venue name" value={form.venue} onChange={(e) => setForm((p) => ({ ...p, venue: e.target.value }))} /></div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium">Project Name *</Label>
+              <Input placeholder="e.g. Priya & Rahul Wedding" value={form.project_name} onChange={(e) => setForm((p) => ({ ...p, project_name: e.target.value }))} />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium">Status</Label>
-              <Select value={form.status} onValueChange={(v) => setForm((p) => ({ ...p, status: v as WeddingProject["status"] }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{Object.entries(statusConfig).map(([k, v]) => (<SelectItem key={k} value={k}>{v.label}</SelectItem>))}</SelectContent>
+              <Label className="text-xs font-medium">Link Client</Label>
+              <Select value={form.client_id} onValueChange={(v) => setForm((p) => ({ ...p, client_id: v }))}>
+                <SelectTrigger><SelectValue placeholder="Select client (optional)" /></SelectTrigger>
+                <SelectContent>
+                  {clients.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.name}{c.partner_name ? ` & ${c.partner_name}` : ""}</SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5"><Label className="text-xs font-medium">Package</Label><Select value={form.package} onValueChange={(v) => setForm((p) => ({ ...p, package: v }))}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{packages.map((p) => (<SelectItem key={p} value={p}>{p}</SelectItem>))}</SelectContent></Select></div>
-              <div className="space-y-1.5"><Label className="text-xs font-medium">Total Amount (₹)</Label><Input type="number" placeholder="350000" value={form.totalAmount} onChange={(e) => setForm((p) => ({ ...p, totalAmount: e.target.value }))} /></div>
+              <div className="space-y-1.5"><Label className="text-xs font-medium">Event Type</Label><Input placeholder="Wedding" value={form.event_type} onChange={(e) => setForm((p) => ({ ...p, event_type: e.target.value }))} /></div>
+              <div className="space-y-1.5"><Label className="text-xs font-medium">Event Date</Label><Input type="date" value={form.event_date} onChange={(e) => setForm((p) => ({ ...p, event_date: e.target.value }))} /></div>
             </div>
-            <div className="space-y-2">
-              <Label className="text-xs font-medium">Assign Team</Label>
-              <div className="space-y-1.5 max-h-48 overflow-y-auto">
-                {sampleTeamMembers.map((m) => {
-                  const selected = form.selectedTeam.includes(m.id);
-                  return (
-                    <div key={m.id} onClick={() => toggleTeam(m.id)} className={cn("flex items-center gap-3 p-2.5 rounded-lg border cursor-pointer transition-all", selected ? "border-primary/30 bg-primary/5" : "border-border/50 hover:bg-muted/50")}>
-                      <Checkbox checked={selected} className="pointer-events-none" />
-                      <Avatar className="h-7 w-7"><AvatarFallback className="text-[10px] bg-primary/10 text-primary font-medium">{m.name.split(" ").map((n) => n[0]).join("")}</AvatarFallback></Avatar>
-                      <div className="flex-1 min-w-0"><p className="text-xs font-medium text-foreground">{m.name}</p><p className="text-[10px] text-muted-foreground capitalize">{m.role.replace("-", " ")} · {m.type}</p></div>
-                    </div>
-                  );
-                })}
+            <div className="space-y-1.5"><Label className="text-xs font-medium">Venue</Label><Input placeholder="Venue name" value={form.venue} onChange={(e) => setForm((p) => ({ ...p, venue: e.target.value }))} /></div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium">Status</Label>
+                <Select value={form.status} onValueChange={(v) => setForm((p) => ({ ...p, status: v }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>{Object.entries(statusConfig).map(([k, v]) => (<SelectItem key={k} value={k}>{v.label}</SelectItem>))}</SelectContent>
+                </Select>
               </div>
+              <div className="space-y-1.5"><Label className="text-xs font-medium">Total Amount (₹)</Label><Input type="number" placeholder="350000" value={form.total_amount} onChange={(e) => setForm((p) => ({ ...p, total_amount: e.target.value }))} /></div>
             </div>
-            <Button className="w-full" onClick={handleAdd}><Plus className="h-4 w-4 mr-1" /> Create Project</Button>
+            {teamMembers.length > 0 && (
+              <div className="space-y-2">
+                <Label className="text-xs font-medium">Assign Team</Label>
+                <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                  {teamMembers.map((m) => {
+                    const selected = form.assigned_team.includes(m.full_name);
+                    return (
+                      <div key={m.id} onClick={() => toggleTeam(m.full_name)} className={cn("flex items-center gap-3 p-2.5 rounded-lg border cursor-pointer transition-all", selected ? "border-primary/30 bg-primary/5" : "border-border/50 hover:bg-muted/50")}>
+                        <Checkbox checked={selected} className="pointer-events-none" />
+                        <Avatar className="h-7 w-7"><AvatarFallback className="text-[10px] bg-primary/10 text-primary font-medium">{m.full_name.split(" ").map((n) => n[0]).join("")}</AvatarFallback></Avatar>
+                        <div className="flex-1 min-w-0"><p className="text-xs font-medium text-foreground">{m.full_name}</p><p className="text-[10px] text-muted-foreground capitalize">{m.role.replace("-", " ")}</p></div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+            <Button className="w-full" onClick={handleAdd} disabled={addProject.isPending}>
+              <Plus className="h-4 w-4 mr-1" /> Create Project
+            </Button>
           </div>
         </SheetContent>
       </Sheet>
