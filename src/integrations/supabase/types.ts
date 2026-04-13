@@ -172,6 +172,69 @@ export type Database = {
           },
         ]
       }
+      deliverables: {
+        Row: {
+          assigned_to: string | null
+          created_at: string
+          deliverable_type: string
+          delivered_date: string | null
+          due_date: string | null
+          id: string
+          notes: string | null
+          organization_id: string
+          priority: string | null
+          project_id: string
+          status: string
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          created_at?: string
+          deliverable_type?: string
+          delivered_date?: string | null
+          due_date?: string | null
+          id?: string
+          notes?: string | null
+          organization_id: string
+          priority?: string | null
+          project_id: string
+          status?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          created_at?: string
+          deliverable_type?: string
+          delivered_date?: string | null
+          due_date?: string | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          priority?: string | null
+          project_id?: string
+          status?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deliverables_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deliverables_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       expenses: {
         Row: {
           amount: number
@@ -429,6 +492,72 @@ export type Database = {
         }
         Relationships: []
       }
+      projects: {
+        Row: {
+          amount_paid: number | null
+          assigned_team: string[] | null
+          client_id: string | null
+          created_at: string
+          event_date: string | null
+          event_type: string | null
+          id: string
+          notes: string | null
+          organization_id: string
+          project_name: string
+          status: string
+          total_amount: number | null
+          updated_at: string
+          venue: string | null
+        }
+        Insert: {
+          amount_paid?: number | null
+          assigned_team?: string[] | null
+          client_id?: string | null
+          created_at?: string
+          event_date?: string | null
+          event_type?: string | null
+          id?: string
+          notes?: string | null
+          organization_id: string
+          project_name: string
+          status?: string
+          total_amount?: number | null
+          updated_at?: string
+          venue?: string | null
+        }
+        Update: {
+          amount_paid?: number | null
+          assigned_team?: string[] | null
+          client_id?: string | null
+          created_at?: string
+          event_date?: string | null
+          event_type?: string | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          project_name?: string
+          status?: string
+          total_amount?: number | null
+          updated_at?: string
+          venue?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projects_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscription_plans: {
         Row: {
           billing_period: string
@@ -545,6 +674,68 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      team_members: {
+        Row: {
+          availability: string | null
+          created_at: string
+          daily_rate: number | null
+          email: string | null
+          experience_years: number | null
+          full_name: string
+          id: string
+          notes: string | null
+          organization_id: string
+          phone: string | null
+          rating: number | null
+          role: string
+          specialties: string[] | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          availability?: string | null
+          created_at?: string
+          daily_rate?: number | null
+          email?: string | null
+          experience_years?: number | null
+          full_name: string
+          id?: string
+          notes?: string | null
+          organization_id: string
+          phone?: string | null
+          rating?: number | null
+          role?: string
+          specialties?: string[] | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          availability?: string | null
+          created_at?: string
+          daily_rate?: number | null
+          email?: string | null
+          experience_years?: number | null
+          full_name?: string
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          phone?: string | null
+          rating?: number | null
+          role?: string
+          specialties?: string[] | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_members_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
