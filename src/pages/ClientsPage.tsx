@@ -11,13 +11,21 @@ import {
 import {
   Users, Search, Plus, Phone, Mail, MapPin, IndianRupee, Star, Filter,
   Crown, TrendingUp, UserCheck, SlidersHorizontal, X, CalendarDays,
-  ChevronRight, ArrowUpRight, Sparkles, Heart, ExternalLink,
+  ChevronRight, ArrowUpRight, Sparkles, Heart, ExternalLink, Loader2,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion, useMotionValue, useTransform, animate, useInView } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { sampleClients, statusConfig, type Client } from "@/data/clients-data";
+import { useClients, type DbClient } from "@/hooks/useClients";
 import { AddClientSheet } from "@/components/AddClientSheet";
+
+const statusConfig: Record<string, { label: string; color: string; bgColor: string; borderColor: string }> = {
+  active: { label: "Active", color: "text-emerald-600", bgColor: "bg-emerald-50 dark:bg-emerald-500/10", borderColor: "border-emerald-200 dark:border-emerald-500/30" },
+  vip: { label: "VIP", color: "text-primary", bgColor: "bg-primary/10", borderColor: "border-primary/30" },
+  past: { label: "Completed", color: "text-muted-foreground", bgColor: "bg-muted", borderColor: "border-border" },
+  completed: { label: "Completed", color: "text-muted-foreground", bgColor: "bg-muted", borderColor: "border-border" },
+  "on-hold": { label: "On Hold", color: "text-amber-600", bgColor: "bg-amber-50 dark:bg-amber-500/10", borderColor: "border-amber-200 dark:border-amber-500/30" },
+};
 
 const containerVariants = {
   hidden: {},
@@ -55,31 +63,38 @@ const AnimatedNumber = ({ value, delay = 0, prefix = "", suffix = "" }: { value:
 
 export default function ClientsPage() {
   const navigate = useNavigate();
-  const [clients, setClients] = useState<Client[]>(sampleClients);
+  const { clients, isLoading, addClient } = useClients();
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterOpen, setFilterOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
-  const [sortBy, setSortBy] = useState<"name" | "spend" | "recent">("recent");
+  const [sortBy, setSortBy] = useState<"name" | "budget" | "recent">("recent");
 
   const filtered = useMemo(() => {
     let result = clients.filter((c) => {
-      const matchSearch = `${c.name} ${c.partnerName} ${c.city} ${c.email}`.toLowerCase().includes(search.toLowerCase());
+      const matchSearch = `${c.name} ${c.partner_name || ""} ${c.city || ""} ${c.email || ""}`.toLowerCase().includes(search.toLowerCase());
       const matchStatus = filterStatus === "all" || c.status === filterStatus;
       return matchSearch && matchStatus;
     });
-    if (sortBy === "spend") result.sort((a, b) => b.totalSpend - a.totalSpend);
+    if (sortBy === "budget") result.sort((a, b) => (b.budget || 0) - (a.budget || 0));
     else if (sortBy === "name") result.sort((a, b) => a.name.localeCompare(b.name));
-    else result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    else result.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     return result;
   }, [clients, search, filterStatus, sortBy]);
 
-  const totalLifetimeValue = clients.reduce((s, c) => s + c.totalSpend, 0);
-  const totalPending = clients.reduce((s, c) => s + c.pendingAmount, 0);
+  const totalBudget = clients.reduce((s, c) => s + (c.budget || 0), 0);
   const activeCount = clients.filter((c) => c.status === "active").length;
   const vipCount = clients.filter((c) => c.status === "vip").length;
 
   const activeFilterCount = filterStatus !== "all" ? 1 : 0;
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -96,7 +111,7 @@ export default function ClientsPage() {
           </div>
           <div>
             <h1 className="text-xl sm:text-2xl font-display font-bold text-foreground">Clients</h1>
-            <p className="text-xs text-muted-foreground">{clients.length} clients · ₹{(totalLifetimeValue / 100000).toFixed(1)}L lifetime value</p>
+            <p className="text-xs text-muted-foreground">{clients.length} clients · ₹{(totalBudget / 100000).toFixed(1)}L total value</p>
           </div>
         </div>
         <Button size="sm" className="gap-2 rounded-xl" onClick={() => setAddOpen(true)}>
@@ -107,9 +122,9 @@ export default function ClientsPage() {
       {/* ═══ Stat Cards ═══ */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { icon: IndianRupee, label: "Revenue", value: Math.round(totalLifetimeValue / 1000), prefix: "₹", suffix: "K", accent: "from-emerald-500/20 to-emerald-500/5", iconColor: "text-emerald-500", ring: "ring-emerald-500/15" },
-          { icon: TrendingUp, label: "Pending", value: Math.round(totalPending / 1000), prefix: "₹", suffix: "K", accent: "from-amber-500/20 to-amber-500/5", iconColor: "text-amber-500", ring: "ring-amber-500/15" },
-          { icon: UserCheck, label: "Active", value: activeCount, prefix: "", suffix: "", accent: "from-blue-500/20 to-blue-500/5", iconColor: "text-blue-500", ring: "ring-blue-500/15" },
+          { icon: IndianRupee, label: "Total Value", value: Math.round(totalBudget / 1000), prefix: "₹", suffix: "K", accent: "from-emerald-500/20 to-emerald-500/5", iconColor: "text-emerald-500", ring: "ring-emerald-500/15" },
+          { icon: Users, label: "Total", value: clients.length, prefix: "", suffix: "", accent: "from-blue-500/20 to-blue-500/5", iconColor: "text-blue-500", ring: "ring-blue-500/15" },
+          { icon: UserCheck, label: "Active", value: activeCount, prefix: "", suffix: "", accent: "from-amber-500/20 to-amber-500/5", iconColor: "text-amber-500", ring: "ring-amber-500/15" },
           { icon: Crown, label: "VIP", value: vipCount, prefix: "", suffix: "", accent: "from-primary/20 to-primary/5", iconColor: "text-primary", ring: "ring-primary/15" },
         ].map((stat, i) => {
           const Icon = stat.icon;
@@ -133,7 +148,6 @@ export default function ClientsPage() {
 
       {/* ═══ Search + Filters ═══ */}
       <motion.div variants={cardVariants} className="flex items-center gap-2">
-        {/* Search */}
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -144,19 +158,17 @@ export default function ClientsPage() {
           />
         </div>
 
-        {/* Sort - Desktop */}
         <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
           <SelectTrigger className="w-32 h-9 hidden sm:flex">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="recent">Recent</SelectItem>
-            <SelectItem value="spend">Highest Spend</SelectItem>
+            <SelectItem value="budget">Highest Budget</SelectItem>
             <SelectItem value="name">Name A-Z</SelectItem>
           </SelectContent>
         </Select>
 
-        {/* Status Filter - Desktop */}
         <Select value={filterStatus} onValueChange={setFilterStatus}>
           <SelectTrigger className="w-32 h-9 hidden sm:flex">
             <SelectValue placeholder="All" />
@@ -165,7 +177,8 @@ export default function ClientsPage() {
             <SelectItem value="all">All Clients</SelectItem>
             <SelectItem value="active">Active</SelectItem>
             <SelectItem value="vip">VIP</SelectItem>
-            <SelectItem value="past">Completed</SelectItem>
+            <SelectItem value="completed">Completed</SelectItem>
+            <SelectItem value="on-hold">On Hold</SelectItem>
           </SelectContent>
         </Select>
 
@@ -188,7 +201,6 @@ export default function ClientsPage() {
               </SheetTitle>
             </SheetHeader>
             <div className="space-y-5">
-              {/* Status Chips */}
               <div>
                 <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2.5 block">Status</label>
                 <div className="flex flex-wrap gap-2">
@@ -196,7 +208,8 @@ export default function ClientsPage() {
                     { value: "all", label: "All" },
                     { value: "active", label: "Active" },
                     { value: "vip", label: "VIP" },
-                    { value: "past", label: "Completed" },
+                    { value: "completed", label: "Completed" },
+                    { value: "on-hold", label: "On Hold" },
                   ].map((opt) => (
                     <button
                       key={opt.value}
@@ -214,13 +227,12 @@ export default function ClientsPage() {
                 </div>
               </div>
 
-              {/* Sort */}
               <div>
                 <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2.5 block">Sort By</label>
                 <div className="flex flex-wrap gap-2">
                   {[
                     { value: "recent", label: "Recent" },
-                    { value: "spend", label: "Highest Spend" },
+                    { value: "budget", label: "Highest Budget" },
                     { value: "name", label: "Name A-Z" },
                   ].map((opt) => (
                     <button
@@ -255,7 +267,7 @@ export default function ClientsPage() {
             onClick={() => setFilterStatus("all")}
             className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-primary/10 text-primary text-[11px] font-medium border border-primary/20"
           >
-            {statusConfig[filterStatus as keyof typeof statusConfig]?.label || filterStatus}
+            {statusConfig[filterStatus]?.label || filterStatus}
             <X className="h-3 w-3" />
           </button>
         </motion.div>
@@ -263,8 +275,8 @@ export default function ClientsPage() {
 
       {/* ═══ Client Cards Grid ═══ */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filtered.map((client, i) => {
-          const cfg = statusConfig[client.status];
+        {filtered.map((client) => {
+          const cfg = statusConfig[client.status] || statusConfig.active;
           return (
             <motion.div
               key={client.id}
@@ -284,13 +296,15 @@ export default function ClientsPage() {
                       "h-11 w-11 rounded-xl flex items-center justify-center font-bold text-sm ring-1",
                       client.status === "vip" ? "bg-primary/15 text-primary ring-primary/20" : "bg-muted text-foreground ring-border"
                     )}>
-                      {client.name.split(" ").map(n => n[0]).join("")}
+                      {client.name.split(" ").map(n => n[0]).join("").slice(0, 2)}
                     </div>
                     <div className="min-w-0">
                       <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors truncate">{client.name}</p>
-                      <p className="text-xs text-muted-foreground flex items-center gap-1">
-                        <Heart className="h-3 w-3" /> {client.partnerName}
-                      </p>
+                      {client.partner_name && (
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Heart className="h-3 w-3" /> {client.partner_name}
+                        </p>
+                      )}
                     </div>
                   </div>
                   <Badge variant="outline" className={cn("text-[10px] shrink-0", cfg.bgColor, cfg.color, cfg.borderColor)}>
@@ -301,64 +315,47 @@ export default function ClientsPage() {
 
                 {/* Info Grid */}
                 <div className="grid grid-cols-2 gap-2 mb-3">
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <MapPin className="h-3 w-3 shrink-0" />
-                    <span className="truncate">{client.city}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <Phone className="h-3 w-3 shrink-0" />
-                    <span className="truncate">{client.phone}</span>
-                  </div>
-                  {client.weddingDate && (
+                  {client.city && (
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                      <CalendarDays className="h-3 w-3 shrink-0" />
-                      <span>{new Date(client.weddingDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
+                      <MapPin className="h-3 w-3 shrink-0" />
+                      <span className="truncate">{client.city}</span>
                     </div>
                   )}
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <Sparkles className="h-3 w-3 shrink-0" />
-                    <span>{client.source}</span>
-                  </div>
+                  {client.phone && (
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Phone className="h-3 w-3 shrink-0" />
+                      <span className="truncate">{client.phone}</span>
+                    </div>
+                  )}
+                  {client.event_date && (
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <CalendarDays className="h-3 w-3 shrink-0" />
+                      <span>{new Date(client.event_date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
+                    </div>
+                  )}
+                  {client.source && (
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Sparkles className="h-3 w-3 shrink-0" />
+                      <span>{client.source}</span>
+                    </div>
+                  )}
                 </div>
-
-                {/* Tags */}
-                {client.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mb-3">
-                    {client.tags.slice(0, 3).map((tag) => (
-                      <span key={tag} className="text-[9px] px-1.5 py-0.5 rounded-md bg-muted text-muted-foreground font-medium">
-                        {tag}
-                      </span>
-                    ))}
-                    {client.tags.length > 3 && (
-                      <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-muted text-muted-foreground font-medium">
-                        +{client.tags.length - 3}
-                      </span>
-                    )}
-                  </div>
-                )}
 
                 {/* Footer */}
                 <div className="pt-3 border-t border-border flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div>
-                      <p className="text-xs text-muted-foreground">Spent</p>
-                      <p className="text-sm font-bold text-foreground">₹{(client.totalSpend / 1000).toFixed(0)}K</p>
-                    </div>
-                    {client.pendingAmount > 0 && (
+                    {client.budget ? (
                       <div>
-                        <p className="text-xs text-muted-foreground">Pending</p>
-                        <p className="text-sm font-bold text-amber-500">₹{(client.pendingAmount / 1000).toFixed(0)}K</p>
+                        <p className="text-xs text-muted-foreground">Budget</p>
+                        <p className="text-sm font-bold text-foreground">₹{((client.budget) / 1000).toFixed(0)}K</p>
                       </div>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-0.5">
-                      {Array.from({ length: 5 }).map((_, j) => (
-                        <Star key={j} className={cn("h-3 w-3", j < client.rating ? "text-primary fill-primary" : "text-muted")} />
-                      ))}
+                    ) : null}
+                    <div>
+                      <p className="text-xs text-muted-foreground">Event</p>
+                      <p className="text-sm font-medium text-foreground">{client.event_type || "–"}</p>
                     </div>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground/40 group-hover:text-primary transition-colors" />
                   </div>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground/40 group-hover:text-primary transition-colors" />
                 </div>
               </div>
             </motion.div>
@@ -370,7 +367,9 @@ export default function ClientsPage() {
         <div className="py-16 text-center">
           <Users className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
           <p className="text-foreground font-medium">No clients found</p>
-          <p className="text-sm text-muted-foreground mt-1">Try adjusting your search or filters</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            {clients.length === 0 ? "Add your first client to get started" : "Try adjusting your search or filters"}
+          </p>
         </div>
       )}
 
@@ -378,7 +377,7 @@ export default function ClientsPage() {
       <AddClientSheet
         open={addOpen}
         onOpenChange={setAddOpen}
-        onAdd={(client) => setClients((prev) => [client, ...prev])}
+        onAdd={(data) => addClient.mutate(data)}
       />
     </motion.div>
   );

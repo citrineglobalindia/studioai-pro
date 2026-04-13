@@ -1,5 +1,7 @@
 import { useState, useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Loader2 } from "lucide-react";
+import { useLeads, type DbLead } from "@/hooks/useLeads";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -39,7 +41,7 @@ const sources: LeadSource[] = ["instagram", "whatsapp", "call", "website", "refe
 const eventTypes: EventType[] = ["wedding", "pre-wedding", "engagement", "reception", "corporate", "birthday"];
 
 const LeadsPage = () => {
-  const [leads, setLeads] = useState<Lead[]>(sampleLeads);
+  const { leads, isLoading: leadsLoading, addLead, updateLead, deleteLead } = useLeads();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [userFilter, setUserFilter] = useState<string>("all");
@@ -78,11 +80,11 @@ const LeadsPage = () => {
     return leads.filter((l) => {
       const matchSearch =
         l.name.toLowerCase().includes(search.toLowerCase()) ||
-        l.phone.includes(search) ||
-        (l.company?.toLowerCase().includes(search.toLowerCase()) ?? false);
-      const matchStatus = statusFilter === "all" || l.stage === statusFilter;
-      const matchUser = userFilter === "all" || l.assignedTo === userFilter;
-      const matchView = viewMode === "all" || l.assignedTo !== undefined;
+        (l.phone || "").includes(search) ||
+        (l.email?.toLowerCase().includes(search.toLowerCase()) ?? false);
+      const matchStatus = statusFilter === "all" || l.status === statusFilter;
+      const matchUser = userFilter === "all" || l.assigned_to === userFilter;
+      const matchView = viewMode === "all" || l.assigned_to !== null;
       return matchSearch && matchStatus && matchUser && matchView;
     });
   }, [leads, search, statusFilter, userFilter, viewMode]);
@@ -92,66 +94,49 @@ const LeadsPage = () => {
       toast.error("Name and phone are required");
       return;
     }
-    const lead: Lead = {
-      id: `l-${Date.now()}`,
-      serialNo: `LD${1556 + leads.length}`,
+    addLead.mutate({
       name: newLead.name,
       phone: newLead.phone,
-      email: newLead.email || undefined,
-      company: newLead.company || undefined,
-      city: newLead.city || undefined,
+      email: newLead.email || null,
+      city: newLead.city || null,
       source: newLead.source,
-      stage: "new",
-      eventType: newLead.eventType,
-      eventDate: newLead.eventDate || undefined,
-      budget: newLead.budget ? parseInt(newLead.budget) : undefined,
-      notes: newLead.notes || undefined,
-      assignedTo: newLead.assignedTo || undefined,
-      createdAt: new Date().toISOString().split("T")[0],
-    };
-    setLeads((prev) => [lead, ...prev]);
+      status: "new",
+      event_type: newLead.eventType,
+      event_date: newLead.eventDate || null,
+      budget: newLead.budget ? parseInt(newLead.budget) : null,
+      notes: newLead.notes || null,
+      assigned_to: newLead.assignedTo || null,
+      follow_up_date: null,
+      converted_client_id: null,
+    });
     setAddLeadOpen(false);
     setNewLead({ name: "", phone: "", email: "", company: "", city: "", source: "instagram", eventType: "wedding", eventDate: "", budget: "", notes: "", assignedTo: "" });
-    toast.success("New lead added!");
   };
 
-  const newLeads = leads.filter((l) => l.stage === "new").length;
-  const followUps = leads.filter((l) => l.stage === "contacted").length;
-  const converted = leads.filter((l) => l.stage === "converted").length;
+  const newLeads = leads.filter((l) => l.status === "new").length;
+  const followUps = leads.filter((l) => l.status === "contacted").length;
+  const converted = leads.filter((l) => l.status === "converted").length;
   const totalLeads = leads.length;
 
-  const toggleSelectAll = () => {
-    if (selectedLeads.length === filtered.length) {
-      setSelectedLeads([]);
-    } else {
-      setSelectedLeads(filtered.map((l) => l.id));
-    }
-  };
-
-  const toggleSelect = (id: string) => {
-    setSelectedLeads((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
-  };
-
   const handleAssign = (leadId: string, assignee: string) => {
-    setLeads((prev) =>
-      prev.map((l) => (l.id === leadId ? { ...l, assignedTo: assignee } : l))
-    );
-    toast.success(`Lead assigned to ${assignee}`);
+    updateLead.mutate({ id: leadId, assigned_to: assignee });
   };
 
   const handleStatusChange = (leadId: string, stage: LeadStage) => {
-    setLeads((prev) =>
-      prev.map((l) => (l.id === leadId ? { ...l, stage } : l))
-    );
-    toast.success("Status updated");
+    updateLead.mutate({ id: leadId, status: stage });
   };
 
   const handleDelete = (leadId: string) => {
-    setLeads((prev) => prev.filter((l) => l.id !== leadId));
-    toast.success("Lead deleted");
+    deleteLead.mutate(leadId);
   };
+
+  if (leadsLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-full mx-auto space-y-5">
@@ -443,21 +428,13 @@ const LeadsPage = () => {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-muted/30 hover:bg-muted/30">
-                    <TableHead className="w-10">
-                      <Checkbox
-                        checked={selectedLeads.length === filtered.length && filtered.length > 0}
-                        onCheckedChange={toggleSelectAll}
-                      />
-                    </TableHead>
-                    <TableHead className="text-xs font-semibold">Serial No.</TableHead>
-                    <TableHead className="text-xs font-semibold">Company</TableHead>
+                    <TableHead className="text-xs font-semibold">Name</TableHead>
                     <TableHead className="text-xs font-semibold">Contact</TableHead>
-                    <TableHead className="text-xs font-semibold">Email</TableHead>
                     <TableHead className="text-xs font-semibold">City</TableHead>
-                    <TableHead className="text-xs font-semibold">Sectors</TableHead>
+                    <TableHead className="text-xs font-semibold">Source</TableHead>
                     <TableHead className="text-xs font-semibold">Assigned To</TableHead>
                     <TableHead className="text-xs font-semibold">Status</TableHead>
-                    <TableHead className="text-xs font-semibold">Deal Value</TableHead>
+                    <TableHead className="text-xs font-semibold">Budget</TableHead>
                     <TableHead className="text-xs font-semibold">Follow-up</TableHead>
                     <TableHead className="text-xs font-semibold">Created</TableHead>
                     <TableHead className="text-xs font-semibold text-right">Actions</TableHead>
@@ -465,40 +442,25 @@ const LeadsPage = () => {
                 </TableHeader>
                 <TableBody>
                   {filtered.map((lead) => {
-                    const stageCfg = stageConfig[lead.stage];
+                    const stageCfg = stageConfig[lead.status as LeadStage] || stageConfig["new"];
                     return (
                       <TableRow key={lead.id} className="hover:bg-muted/20 transition-colors">
                         <TableCell>
-                          <Checkbox
-                            checked={selectedLeads.includes(lead.id)}
-                            onCheckedChange={() => toggleSelect(lead.id)}
-                          />
-                        </TableCell>
-                        <TableCell className="text-sm font-medium text-foreground">{lead.serialNo}</TableCell>
-                        <TableCell>
-                          <div>
-                            <span className="text-sm font-medium text-foreground">{lead.company || lead.name}</span>
-                            {lead.website && (
-                              <a href={lead.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-primary hover:underline mt-0.5">
-                                <ExternalLink className="h-3 w-3" /> Website
-                              </a>
-                            )}
-                          </div>
+                          <span className="text-sm font-medium text-foreground">{lead.name}</span>
                         </TableCell>
                         <TableCell>
                           <div>
-                            <span className="text-sm text-foreground">{lead.phone}</span>
-                            {lead.company && (
-                              <p className="text-xs text-muted-foreground truncate max-w-[140px]">{lead.notes?.slice(0, 30)}...</p>
+                            <span className="text-sm text-foreground">{lead.phone || "–"}</span>
+                            {lead.email && (
+                              <p className="text-xs text-muted-foreground truncate max-w-[140px]">{lead.email}</p>
                             )}
                           </div>
                         </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{lead.email || "–"}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">{lead.city || "–"}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{lead.sectors || "–"}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{lead.source || "–"}</TableCell>
                         <TableCell>
-                          {lead.assignedTo ? (
-                            <span className="text-sm text-foreground">{lead.assignedTo}</span>
+                          {lead.assigned_to ? (
+                            <span className="text-sm text-foreground">{lead.assigned_to}</span>
                           ) : (
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
@@ -536,11 +498,11 @@ const LeadsPage = () => {
                           </DropdownMenu>
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
-                          {lead.dealValue ? `₹${(lead.dealValue / 1000).toFixed(0)}K` : "–"}
+                          {lead.budget ? `₹${(Number(lead.budget) / 1000).toFixed(0)}K` : "–"}
                         </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{lead.followUp || "–"}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{lead.follow_up_date || "–"}</TableCell>
                         <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
-                          {new Date(lead.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
+                          {new Date(lead.created_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1 justify-end">
@@ -553,10 +515,6 @@ const LeadsPage = () => {
                             <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
                               <Pencil className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
-                              <Bell className="h-4 w-4" />
-                            </Button>
-                            <span className="text-xs text-muted-foreground mr-1">Reminder</span>
                             <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => handleDelete(lead.id)}>
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -567,7 +525,7 @@ const LeadsPage = () => {
                   })}
                   {filtered.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={13} className="text-center py-12 text-muted-foreground">
+                      <TableCell colSpan={10} className="text-center py-12 text-muted-foreground">
                         No leads found matching your filters
                       </TableCell>
                     </TableRow>
