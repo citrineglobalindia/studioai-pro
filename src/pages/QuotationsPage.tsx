@@ -210,9 +210,27 @@ export default function QuotationsPage() {
   const [newNotes, setNewNotes] = useState("");
   const [newValidDate, setNewValidDate] = useState<Date>();
 
+  // Map DB quotations to the local Quotation interface
+  const quotations: Quotation[] = useMemo(() => {
+    if (dbQuotations.length === 0) return sampleQuotations;
+    return dbQuotations.map(q => ({
+      id: q.id,
+      quotationNumber: q.quotation_number,
+      client: q.client_name,
+      items: (q.items as any[]) || [],
+      totalAmount: q.subtotal,
+      discount: q.discount_value || 0,
+      finalAmount: q.total_amount,
+      status: q.status as Quotation["status"],
+      validUntil: q.valid_until || "",
+      createdAt: q.created_at.split("T")[0],
+      notes: q.notes || undefined,
+    }));
+  }, [dbQuotations]);
+
   const filtered = useMemo(() => {
     return quotations.filter((q) => {
-      const matchSearch = `${q.client} ${q.quotationNumber} ${q.items.map(i => i.name).join(" ")}`.toLowerCase().includes(search.toLowerCase());
+      const matchSearch = `${q.client} ${q.quotationNumber} ${q.items.map((i: any) => i.name).join(" ")}`.toLowerCase().includes(search.toLowerCase());
       const matchStatus = statusFilter === "all" || q.status === statusFilter;
       return matchSearch && matchStatus;
     });
@@ -244,6 +262,7 @@ export default function QuotationsPage() {
     if (!newClient.trim()) { toast.error("Client name is required"); return; }
     if (!newSelectedPkg) { toast.error("Select a package"); return; }
     if (!newValidDate) { toast.error("Set a validity date"); return; }
+    if (!organization) { toast.error("No organization found"); return; }
 
     const items: QuotationItem[] = [];
     if (selectedPackage) items.push({ type: "package", name: selectedPackage.name + " Package", amount: selectedPackage.price });
@@ -255,34 +274,30 @@ export default function QuotationsPage() {
       items.push({ type: "custom", name: ci.name, amount: Number(ci.amount) });
     });
 
-    const q: Quotation = {
-      id: `q-${Date.now()}`,
-      quotationNumber: `QT-2026-${String(quotations.length + 1).padStart(3, "0")}`,
-      client: newClient.trim(),
-      clientPhone: newClientPhone.trim() || undefined,
-      items,
-      totalAmount: subtotal,
-      discount: discountAmt,
-      finalAmount: grandTotal,
+    createQuotation.mutate({
+      organization_id: organization.id,
+      client_id: null,
+      project_id: null,
+      quotation_number: `QT-2026-${String(quotations.length + 1).padStart(3, "0")}`,
+      client_name: newClient.trim(),
+      project_name: null,
+      items: items as any,
+      subtotal,
+      discount_type: newDiscountPercent ? "percentage" : "fixed",
+      discount_value: discountAmt,
+      tax_percent: 0,
+      total_amount: grandTotal,
       status: "draft",
-      validUntil: format(newValidDate, "yyyy-MM-dd"),
-      createdAt: format(new Date(), "yyyy-MM-dd"),
-      notes: newNotes.trim() || undefined,
-    };
-
-    setQuotations(prev => [q, ...prev]);
-    toast.success("Quotation created!", { description: `${q.quotationNumber} for ${q.client}` });
+      valid_until: format(newValidDate, "yyyy-MM-dd"),
+      terms: null,
+      notes: newNotes.trim() || null,
+    });
     resetCreate();
     setCreateOpen(false);
   };
 
   const handleStatusChange = (qId: string, newStatus: Quotation["status"]) => {
-    setQuotations(prev => prev.map(q => {
-      if (q.id !== qId) return q;
-      const updates: Partial<Quotation> = { status: newStatus };
-      if (newStatus === "sent" && !q.sentDate) updates.sentDate = format(new Date(), "yyyy-MM-dd");
-      return { ...q, ...updates };
-    }));
+    updateQuotation.mutate({ id: qId, status: newStatus });
     const label = statusConfig[newStatus].label;
     toast.success(`Quotation marked as ${label}`);
     setSelectedQuotation(null);
