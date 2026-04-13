@@ -52,6 +52,91 @@ const LeadsPage = () => {
   const [filterOpen, setFilterOpen] = useState(false);
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [importSheetOpen, setImportSheetOpen] = useState(false);
+  const [importedRows, setImportedRows] = useState<Record<string, string>[]>([]);
+  const [importing, setImporting] = useState(false);
+  const [importHistory, setImportHistory] = useState<{ date: string; count: number; filename: string }[]>([]);
+
+  // ═══ EXPORT CSV ═══
+  const handleExportCSV = () => {
+    if (leads.length === 0) { toast.error("No leads to export"); return; }
+    const headers = ["Name", "Phone", "Email", "Source", "Status", "Event Type", "Event Date", "City", "Budget", "Assigned To", "Follow-up Date", "Notes", "Created At"];
+    const rows = leads.map(l => [
+      l.name, l.phone || "", l.email || "", l.source, l.status,
+      l.event_type || "", l.event_date || "", l.city || "",
+      l.budget?.toString() || "", l.assigned_to || "", l.follow_up_date || "",
+      (l.notes || "").replace(/,/g, ";"), l.created_at,
+    ]);
+    const csv = [headers.join(","), ...rows.map(r => r.map(v => `"${v}"`).join(","))].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `leads_export_${new Date().toISOString().split("T")[0]}.csv`;
+    a.click(); URL.revokeObjectURL(url);
+    toast.success(`Exported ${leads.length} leads to CSV`);
+  };
+
+  // ═══ IMPORT CSV ═══
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.name.endsWith(".csv")) { toast.error("Please upload a CSV file"); return; }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const text = ev.target?.result as string;
+      const lines = text.split("\n").filter(l => l.trim());
+      if (lines.length < 2) { toast.error("CSV must have headers and at least one row"); return; }
+      const headers = lines[0].split(",").map(h => h.replace(/"/g, "").trim().toLowerCase());
+      const rows = lines.slice(1).map(line => {
+        const values = line.match(/(".*?"|[^",]+|(?<=,)(?=,))/g)?.map(v => v.replace(/"/g, "").trim()) || [];
+        const row: Record<string, string> = {};
+        headers.forEach((h, i) => { row[h] = values[i] || ""; });
+        return row;
+      });
+      setImportedRows(rows);
+      setImportSheetOpen(true);
+      toast.success(`Parsed ${rows.length} rows from ${file.name}`);
+      setImportHistory(prev => [{ date: new Date().toISOString(), count: rows.length, filename: file.name }, ...prev]);
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  };
+
+  const handleImportConfirm = () => {
+    if (importedRows.length === 0) return;
+    setImporting(true);
+    let imported = 0;
+    const mapField = (row: Record<string, string>, ...keys: string[]) => {
+      for (const k of keys) { if (row[k]) return row[k]; }
+      return "";
+    };
+    importedRows.forEach(row => {
+      const name = mapField(row, "name", "client name", "client", "lead name", "full name");
+      if (!name) return;
+      addLead.mutate({
+        name,
+        phone: mapField(row, "phone", "mobile", "contact", "phone number") || null,
+        email: mapField(row, "email", "email address", "mail") || null,
+        source: mapField(row, "source", "lead source") || "Website",
+        status: "new",
+        event_type: mapField(row, "event type", "event", "type") || null,
+        event_date: mapField(row, "event date", "date") || null,
+        city: mapField(row, "city", "location") || null,
+        budget: mapField(row, "budget", "deal value", "amount") ? parseFloat(mapField(row, "budget", "deal value", "amount")) : null,
+        notes: mapField(row, "notes", "remarks", "comments") || null,
+        assigned_to: mapField(row, "assigned to", "assigned", "assignee") || null,
+        follow_up_date: null,
+        converted_client_id: null,
+      });
+      imported++;
+    });
+    setTimeout(() => {
+      setImporting(false);
+      setImportSheetOpen(false);
+      setImportedRows([]);
+      toast.success(`${imported} leads imported successfully!`);
+    }, 500);
+  };
 
   // Add Lead Sheet
   const [addLeadOpen, setAddLeadOpen] = useState(false);
@@ -158,9 +243,24 @@ const LeadsPage = () => {
             <Switch checked={autoRefresh} onCheckedChange={setAutoRefresh} className="scale-90" />
             <span className="text-[10px] text-muted-foreground">(5 min)</span>
           </div>
-          <Button variant="outline" size="sm" className="gap-2">
-            <Upload className="h-3.5 w-3.5" /> Import/Export
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2">
+                <Upload className="h-3.5 w-3.5" /> Import/Export <ChevronDown className="h-3 w-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleExportCSV} className="gap-2">
+                <Download className="h-4 w-4" /> Export as CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem className="gap-2" asChild>
+                <label className="cursor-pointer flex items-center gap-2 w-full">
+                  <Upload className="h-4 w-4" /> Import from CSV
+                  <input type="file" accept=".csv" className="hidden" onChange={handleFileSelect} />
+                </label>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button size="sm" className="gap-2" onClick={() => setAddLeadOpen(true)}>
             <Plus className="h-4 w-4" /> New Lead
           </Button>
@@ -539,9 +639,15 @@ const LeadsPage = () => {
         <TabsContent value="imported" className="mt-4">
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <Upload className="h-12 w-12 text-muted-foreground/40 mb-3" />
-            <p className="text-lg font-medium text-foreground">No imported leads yet</p>
-            <p className="text-sm text-muted-foreground mt-1">Import leads from CSV or Excel files</p>
-            <Button className="mt-4 gap-2"><Upload className="h-4 w-4" /> Import Leads</Button>
+            <p className="text-lg font-medium text-foreground">Import Leads from CSV</p>
+            <p className="text-sm text-muted-foreground mt-1 max-w-md">
+              Upload a CSV file with columns like: Name, Phone, Email, Source, City, Event Type, Budget, Notes
+            </p>
+            <label className="cursor-pointer">
+              <Button className="mt-4 gap-2" asChild><span><Upload className="h-4 w-4" /> Choose CSV File</span></Button>
+              <input type="file" accept=".csv" className="hidden" onChange={handleFileSelect} />
+            </label>
+            <p className="text-[10px] text-muted-foreground mt-3">Supported: .csv files with headers in the first row</p>
           </div>
         </TabsContent>
 
@@ -562,11 +668,34 @@ const LeadsPage = () => {
         </TabsContent>
 
         <TabsContent value="history" className="mt-4">
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <Clock className="h-12 w-12 text-muted-foreground/40 mb-3" />
-            <p className="text-lg font-medium text-foreground">Import History</p>
-            <p className="text-sm text-muted-foreground mt-1">Track all your lead imports and their status</p>
-          </div>
+          {importHistory.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <Clock className="h-12 w-12 text-muted-foreground/40 mb-3" />
+              <p className="text-lg font-medium text-foreground">No imports yet</p>
+              <p className="text-sm text-muted-foreground mt-1">Your CSV import history will appear here</p>
+            </div>
+          ) : (
+            <div className="rounded-xl border border-border bg-card overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/30">
+                    <TableHead className="text-xs font-semibold">Date</TableHead>
+                    <TableHead className="text-xs font-semibold">File</TableHead>
+                    <TableHead className="text-xs font-semibold">Leads Imported</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {importHistory.map((h, i) => (
+                    <TableRow key={i}>
+                      <TableCell className="text-sm">{new Date(h.date).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{h.filename}</TableCell>
+                      <TableCell><Badge variant="secondary">{h.count} leads</Badge></TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </TabsContent>
       </Tabs>
 
@@ -661,6 +790,72 @@ const LeadsPage = () => {
             <Button className="w-full" onClick={handleAddLead}>
               <Plus className="h-4 w-4 mr-1" /> Add Lead
             </Button>
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* ═══ IMPORT PREVIEW SHEET ═══ */}
+      <Sheet open={importSheetOpen} onOpenChange={setImportSheetOpen}>
+        <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle className="flex items-center gap-2 text-base">
+              <Upload className="h-5 w-5 text-primary" /> Import Preview
+            </SheetTitle>
+          </SheetHeader>
+          <div className="mt-4 space-y-4">
+            <div className="bg-muted/30 rounded-lg p-3">
+              <p className="text-sm font-medium text-foreground">{importedRows.length} leads ready to import</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Detected columns: {importedRows[0] ? Object.keys(importedRows[0]).join(", ") : "—"}
+              </p>
+            </div>
+
+            {/* Preview Table */}
+            <div className="rounded-xl border border-border overflow-hidden max-h-[400px] overflow-y-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/30">
+                    <TableHead className="text-xs">#</TableHead>
+                    <TableHead className="text-xs">Name</TableHead>
+                    <TableHead className="text-xs">Phone</TableHead>
+                    <TableHead className="text-xs">Source</TableHead>
+                    <TableHead className="text-xs">City</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {importedRows.slice(0, 20).map((row, i) => {
+                    const name = row["name"] || row["client name"] || row["lead name"] || row["full name"] || "—";
+                    const phone = row["phone"] || row["mobile"] || row["contact"] || "—";
+                    const source = row["source"] || row["lead source"] || "—";
+                    const city = row["city"] || row["location"] || "—";
+                    return (
+                      <TableRow key={i}>
+                        <TableCell className="text-xs text-muted-foreground">{i + 1}</TableCell>
+                        <TableCell className="text-sm font-medium">{name}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{phone}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{source}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{city}</TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+              {importedRows.length > 20 && (
+                <p className="text-xs text-muted-foreground text-center py-2">
+                  ...and {importedRows.length - 20} more rows
+                </p>
+              )}
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <Button variant="outline" className="flex-1" onClick={() => { setImportSheetOpen(false); setImportedRows([]); }}>
+                Cancel
+              </Button>
+              <Button className="flex-1 gap-2" onClick={handleImportConfirm} disabled={importing}>
+                {importing ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                {importing ? "Importing..." : `Import ${importedRows.length} Leads`}
+              </Button>
+            </div>
           </div>
         </SheetContent>
       </Sheet>
