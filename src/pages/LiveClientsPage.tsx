@@ -9,7 +9,9 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { sampleLiveClients } from "@/data/live-clients-data";
+import { useProjects } from "@/hooks/useProjects";
+import { useDeliverables } from "@/hooks/useDeliverables";
+import type { LiveClient, Deliverable } from "@/data/live-clients-data";
 
 import { ListView } from "@/components/live-clients/ListView";
 import { CardView } from "@/components/live-clients/CardView";
@@ -25,23 +27,92 @@ const viewOptions: { value: ViewMode; label: string; icon: React.ElementType }[]
   { value: "present", label: "Present", icon: Presentation },
 ];
 
+const deliverableStatusMap: Record<string, Deliverable["status"]> = {
+  pending: "pending",
+  in_progress: "in-progress",
+  review: "review",
+  completed: "delivered",
+  delivered: "delivered",
+};
+
 export default function LiveClientsPage() {
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [viewMode, setViewMode] = useState<ViewMode>("list");
+  const { projects, isLoading: projectsLoading } = useProjects();
+  const { deliverables, isLoading: deliverablesLoading } = useDeliverables();
+
+  // Map DB projects + deliverables to LiveClient format for existing view components
+  const liveClients: LiveClient[] = useMemo(() => {
+    return projects.map((p) => {
+      const projectDeliverables = deliverables.filter((d) => d.project_id === p.id);
+      const mappedDeliverables: Deliverable[] = projectDeliverables.map((d) => ({
+        id: d.id,
+        type: (d.deliverable_type === "photos" ? "Photos" : d.deliverable_type === "videos" ? "Videos" : d.deliverable_type === "album" ? "Albums" : d.deliverable_type === "highlights" ? "Highlights" : "Footage Copy") as Deliverable["type"],
+        label: d.title || d.deliverable_type,
+        status: deliverableStatusMap[d.status] || "pending",
+        progress: d.status === "delivered" || d.status === "completed" ? 100 : d.status === "review" ? 80 : d.status === "in_progress" ? 50 : 0,
+        dueDate: d.due_date || "",
+        deliveredDate: d.delivered_date || undefined,
+        assignedTo: d.assigned_to || undefined,
+      }));
+
+      const deliveredCount = mappedDeliverables.filter((d) => d.status === "delivered").length;
+      const totalDel = mappedDeliverables.length || 1;
+      const overallProgress = Math.round((deliveredCount / totalDel) * 100);
+
+      const projectStatus: LiveClient["status"] = 
+        p.status === "completed" || p.status === "delivered" ? "completed" :
+        p.status === "planning" ? "on-hold" : "active";
+
+      return {
+        id: p.id,
+        name: p.client?.name || p.project_name,
+        partnerName: p.client?.partner_name || "",
+        eventType: p.event_type || "Wedding",
+        eventDate: p.event_date || "",
+        deliveryDate: "",
+        city: p.client?.city || "",
+        phone: p.client?.phone || "",
+        overallProgress,
+        status: projectStatus,
+        team: (p.assigned_team || []).map((name, i) => ({ id: `t-${i}`, name, role: "Crew", avatar: undefined })),
+        deliverables: mappedDeliverables,
+        financials: {
+          estimatedAmount: p.total_amount || 0,
+          invoicedAmount: p.total_amount || 0,
+          paidAmount: p.amount_paid || 0,
+          pendingAmount: (p.total_amount || 0) - (p.amount_paid || 0),
+          expenses: 0,
+          profit: p.amount_paid || 0,
+        },
+        createdAt: p.created_at,
+      } as LiveClient;
+    });
+  }, [projects, deliverables]);
 
   const filtered = useMemo(() => {
-    return sampleLiveClients.filter((c) => {
+    return liveClients.filter((c) => {
       const matchSearch = `${c.name} ${c.partnerName} ${c.city}`.toLowerCase().includes(search.toLowerCase());
       const matchStatus = filterStatus === "all" || c.status === filterStatus;
       return matchSearch && matchStatus;
     });
-  }, [search, filterStatus]);
+  }, [liveClients, search, filterStatus]);
 
-  const totalActive = sampleLiveClients.filter((c) => c.status === "active").length;
-  const totalCompleted = sampleLiveClients.filter((c) => c.status === "completed").length;
-  const avgProgress = Math.round(sampleLiveClients.reduce((s, c) => s + c.overallProgress, 0) / sampleLiveClients.length);
-  const totalDelivered = sampleLiveClients.reduce((s, c) => s + c.deliverables.filter((d) => d.status === "delivered").length, 0);
+  const totalActive = liveClients.filter((c) => c.status === "active").length;
+  const totalCompleted = liveClients.filter((c) => c.status === "completed").length;
+  const avgProgress = liveClients.length > 0 ? Math.round(liveClients.reduce((s, c) => s + c.overallProgress, 0) / liveClients.length) : 0;
+  const totalDelivered = liveClients.reduce((s, c) => s + c.deliverables.filter((d) => d.status === "delivered").length, 0);
+
+  const isLoading = projectsLoading || deliverablesLoading;
+
+  if (isLoading) {
+    return (
+      <div className="max-w-7xl mx-auto flex items-center justify-center py-20">
+        <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full" />
+      </div>
+    );
+  }
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-7xl mx-auto space-y-5">
@@ -53,7 +124,7 @@ export default function LiveClientsPage() {
           </div>
           <div>
             <h1 className="text-xl sm:text-2xl font-display font-bold text-foreground">Live Clients</h1>
-            <p className="text-xs text-muted-foreground">{sampleLiveClients.length} clients · Real-time project tracking</p>
+            <p className="text-xs text-muted-foreground">{liveClients.length} clients · Real-time project tracking</p>
           </div>
         </div>
 
@@ -133,7 +204,7 @@ export default function LiveClientsPage() {
         <div className="py-16 text-center">
           <Activity className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
           <p className="text-foreground font-medium">No live clients found</p>
-          <p className="text-sm text-muted-foreground mt-1">Try adjusting your search or filters</p>
+          <p className="text-sm text-muted-foreground mt-1">Create projects to see them here</p>
         </div>
       )}
     </motion.div>
