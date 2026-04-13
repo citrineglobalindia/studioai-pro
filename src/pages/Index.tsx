@@ -3,7 +3,7 @@ import {
   Users, UserPlus, Camera, IndianRupee, TrendingUp, CalendarDays,
   AlertTriangle, Clock, CheckCircle, Film, ArrowUpRight, ArrowDownRight,
   Zap, Target, Eye, PhoneCall, BarChart3, Sparkles, ChevronRight, MapPin,
-  Crown, Activity, ArrowRight, Briefcase,
+  Crown, Activity, ArrowRight, Briefcase, PieChart as PieChartIcon,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { Progress } from "@/components/ui/progress";
 import { Calendar } from "@/components/ui/calendar";
 import { sampleProjects } from "@/data/wedding-types";
 import { sampleLeads } from "@/data/lead-types";
+import { MiniPieCard } from "@/components/dashboards/MiniPieCard";
 import { useNavigate } from "react-router-dom";
 import { motion, useMotionValue, useTransform, animate, useInView } from "framer-motion";
 import { cn } from "@/lib/utils";
