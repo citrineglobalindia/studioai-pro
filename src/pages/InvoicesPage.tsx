@@ -1,147 +1,111 @@
 import { useState, useMemo } from "react";
-import { sampleProjects, type Payment, type PaymentStatus, type PaymentType, type PaymentMode } from "@/data/wedding-types";
-import { sampleClients } from "@/data/clients-data";
+import { useInvoices, type InvoiceRow } from "@/hooks/useInvoices";
+import { useClients } from "@/hooks/useClients";
+import { useProjects } from "@/hooks/useProjects";
+import { useOrg } from "@/contexts/OrgContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
   IndianRupee, Plus, FileText, CheckCircle2, Clock, AlertCircle,
-  ArrowUpRight, CalendarDays, CreditCard, Banknote, Smartphone, Building2,
-  Download, Send, Search, Eye, Printer, Copy, Receipt,
+  Download, Send, Search, Printer, Copy, Receipt,
 } from "lucide-react";
 
-// ─── Config ───
-const statusConfig: Record<PaymentStatus, { label: string; icon: typeof Clock; class: string }> = {
-  paid: { label: "Paid", icon: CheckCircle2, class: "text-emerald-400 bg-emerald-500/20 border-emerald-500/30" },
-  pending: { label: "Pending", icon: Clock, class: "text-muted-foreground bg-muted border-border" },
-  overdue: { label: "Overdue", icon: AlertCircle, class: "text-red-400 bg-red-500/20 border-red-500/30" },
-  partial: { label: "Partial", icon: IndianRupee, class: "text-yellow-400 bg-yellow-500/20 border-yellow-500/30" },
-};
-
-const typeConfig: Record<PaymentType, { label: string; class: string }> = {
-  advance: { label: "Advance", class: "bg-primary/15 text-primary border-primary/30" },
-  milestone: { label: "Milestone", class: "bg-blue-500/15 text-blue-400 border-blue-500/30" },
-  final: { label: "Final", class: "bg-purple-500/15 text-purple-400 border-purple-500/30" },
-};
-
-const modeIcons: Record<string, typeof CreditCard> = {
-  upi: Smartphone, "bank-transfer": Building2, cash: Banknote, cheque: FileText, card: CreditCard,
+const statusStyles: Record<string, string> = {
+  paid: "text-emerald-400 bg-emerald-500/20 border-emerald-500/30",
+  pending: "text-muted-foreground bg-muted border-border",
+  draft: "text-muted-foreground bg-muted border-border",
+  sent: "text-blue-400 bg-blue-500/20 border-blue-500/30",
+  overdue: "text-red-400 bg-red-500/20 border-red-500/30",
+  partial: "text-yellow-400 bg-yellow-500/20 border-yellow-500/30",
 };
 
 const fmt = (n: number) => `₹${n.toLocaleString("en-IN")}`;
 
-interface InvoiceRecord {
-  id: string;
-  invoiceNumber: string;
-  client: string;
-  project: string;
-  items: { description: string; amount: number }[];
-  totalAmount: number;
-  status: "draft" | "sent" | "paid" | "overdue" | "partial";
-  issueDate: string;
-  dueDate: string;
-  paidAmount: number;
-  paymentMode?: string;
-  notes?: string;
-}
-
-// Generate invoice records from project payments
-const generateInvoices = (): InvoiceRecord[] => {
-  return sampleProjects.flatMap(project =>
-    project.payments.filter(p => p.invoiceNumber).map(p => ({
-      id: p.id,
-      invoiceNumber: p.invoiceNumber!,
-      client: `${project.clientName} & ${project.partnerName}`,
-      project: project.package,
-      items: [{ description: p.label, amount: p.amount }],
-      totalAmount: p.amount,
-      status: (p.status === "paid" ? "paid" : new Date(p.dueDate) < new Date() ? "overdue" : p.paidAmount > 0 ? "partial" : "draft") as InvoiceRecord["status"],
-      issueDate: project.createdAt,
-      dueDate: p.dueDate,
-      paidAmount: p.paidAmount,
-      paymentMode: p.mode,
-    }))
-  );
-};
-
 const InvoicesPage = () => {
-  const navigate = useNavigate();
-  const [invoices, setInvoices] = useState<InvoiceRecord[]>(generateInvoices);
+  const { organization } = useOrg();
+  const { invoices, isLoading, createInvoice, updateInvoice } = useInvoices();
+  const { clients } = useClients();
+  const { projects } = useProjects();
+
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
   const [activeTab, setActiveTab] = useState("all");
   const [createOpen, setCreateOpen] = useState(false);
   const [recordPaymentOpen, setRecordPaymentOpen] = useState(false);
-  const [selectedInvoice, setSelectedInvoice] = useState<InvoiceRecord | null>(null);
-  const [viewInvoice, setViewInvoice] = useState<InvoiceRecord | null>(null);
+  const [selectedInvoice, setSelectedInvoice] = useState<InvoiceRow | null>(null);
+  const [viewInvoice, setViewInvoice] = useState<InvoiceRow | null>(null);
 
-  // Create invoice form
+  // Create form
   const [newClient, setNewClient] = useState("");
   const [newProject, setNewProject] = useState("");
-  const [newType, setNewType] = useState<PaymentType>("milestone");
   const [newDescription, setNewDescription] = useState("");
   const [newAmount, setNewAmount] = useState("");
   const [newDueDate, setNewDueDate] = useState("");
   const [newNotes, setNewNotes] = useState("");
 
-  // Record payment form
+  // Payment form
   const [payAmount, setPayAmount] = useState("");
   const [payMode, setPayMode] = useState("");
   const [payReference, setPayReference] = useState("");
 
-  const allPayments = sampleProjects.flatMap(project =>
-    project.payments.map(payment => ({ ...payment, clientName: `${project.clientName} & ${project.partnerName}`, projectId: project.id }))
-  );
+  const getEffectiveStatus = (inv: InvoiceRow) => {
+    if (inv.status === "paid") return "paid";
+    if (inv.amount_paid > 0 && inv.amount_paid < inv.total_amount) return "partial";
+    if (inv.due_date && new Date(inv.due_date) < new Date() && inv.status !== "paid") return "overdue";
+    return inv.status;
+  };
 
-  const totalRevenue = allPayments.reduce((sum, p) => sum + p.amount, 0);
-  const totalCollected = allPayments.reduce((sum, p) => sum + p.paidAmount, 0);
+  const totalRevenue = invoices.reduce((s, i) => s + i.total_amount, 0);
+  const totalCollected = invoices.reduce((s, i) => s + i.amount_paid, 0);
   const totalPending = totalRevenue - totalCollected;
-  const overduePayments = allPayments.filter(p => p.status !== "paid" && new Date(p.dueDate) < new Date());
-  const overdueAmount = overduePayments.reduce((sum, p) => sum + (p.amount - p.paidAmount), 0);
+  const overdueInvoices = invoices.filter(i => getEffectiveStatus(i) === "overdue");
+  const overdueAmount = overdueInvoices.reduce((s, i) => s + (i.total_amount - i.amount_paid), 0);
 
   const filteredInvoices = useMemo(() => {
     return invoices.filter(inv => {
-      if (search && !`${inv.client} ${inv.invoiceNumber} ${inv.project}`.toLowerCase().includes(search.toLowerCase())) return false;
-      if (activeTab === "pending") return ["draft", "partial"].includes(inv.status);
-      if (activeTab === "overdue") return inv.status === "overdue";
-      if (activeTab === "paid") return inv.status === "paid";
+      if (search && !`${inv.client_name} ${inv.invoice_number} ${inv.project_name || ""}`.toLowerCase().includes(search.toLowerCase())) return false;
+      const status = getEffectiveStatus(inv);
+      if (activeTab === "pending") return ["draft", "partial", "sent"].includes(status);
+      if (activeTab === "overdue") return status === "overdue";
+      if (activeTab === "paid") return status === "paid";
       return true;
     });
   }, [invoices, search, activeTab]);
 
-  const clientNames = [...new Set([...sampleClients.map(c => c.name), ...sampleProjects.map(p => p.clientName)])];
-
   const handleCreateInvoice = () => {
-    if (!newClient || !newDescription || !newAmount || !newDueDate) {
+    if (!newClient || !newDescription || !newAmount || !newDueDate || !organization) {
       toast.error("Fill all required fields"); return;
     }
-    const inv: InvoiceRecord = {
-      id: `inv-${Date.now()}`,
-      invoiceNumber: `INV-2026-${String(invoices.length + 1).padStart(3, "0")}`,
-      client: newClient,
-      project: newProject,
-      items: [{ description: newDescription, amount: parseFloat(newAmount) }],
-      totalAmount: parseFloat(newAmount),
+    const count = invoices.length;
+    createInvoice.mutate({
+      organization_id: organization.id,
+      client_id: null,
+      project_id: null,
+      invoice_number: `INV-2026-${String(count + 1).padStart(3, "0")}`,
+      client_name: newClient,
+      project_name: newProject || null,
+      items: [{ description: newDescription, amount: parseFloat(newAmount) }] as any,
+      subtotal: parseFloat(newAmount),
+      discount_type: "percentage",
+      discount_value: 0,
+      tax_percent: 0,
+      total_amount: parseFloat(newAmount),
+      amount_paid: 0,
       status: "draft",
-      issueDate: new Date().toISOString().split("T")[0],
-      dueDate: newDueDate,
-      paidAmount: 0,
-      notes: newNotes || undefined,
-    };
-    setInvoices(prev => [inv, ...prev]);
-    toast.success("Invoice created!", { description: inv.invoiceNumber });
+      due_date: newDueDate,
+      payment_terms: null,
+      notes: newNotes || null,
+    });
     setCreateOpen(false);
     setNewClient(""); setNewProject(""); setNewDescription(""); setNewAmount(""); setNewDueDate(""); setNewNotes("");
   };
@@ -151,26 +115,32 @@ const InvoicesPage = () => {
       toast.error("Fill all required fields"); return;
     }
     const amt = parseFloat(payAmount);
-    setInvoices(prev => prev.map(inv => {
-      if (inv.id !== selectedInvoice.id) return inv;
-      const newPaid = inv.paidAmount + amt;
-      return {
-        ...inv,
-        paidAmount: newPaid,
-        status: newPaid >= inv.totalAmount ? "paid" : "partial",
-        paymentMode: payMode,
-      };
-    }));
+    const newPaid = selectedInvoice.amount_paid + amt;
+    updateInvoice.mutate({
+      id: selectedInvoice.id,
+      amount_paid: newPaid,
+      status: newPaid >= selectedInvoice.total_amount ? "paid" : "partial",
+    });
     toast.success("Payment recorded!", { description: `${fmt(amt)} via ${payMode}` });
     setRecordPaymentOpen(false);
     setSelectedInvoice(null);
     setPayAmount(""); setPayMode(""); setPayReference("");
   };
 
-  const handleSendInvoice = (inv: InvoiceRecord) => {
-    setInvoices(prev => prev.map(i => i.id === inv.id ? { ...i, status: i.status === "draft" ? "sent" as any : i.status } : i));
-    toast.success("Invoice sent to client!", { description: `${inv.invoiceNumber} → ${inv.client}` });
+  const handleSendInvoice = (inv: InvoiceRow) => {
+    updateInvoice.mutate({ id: inv.id, status: "sent" });
+    toast.success("Invoice sent to client!", { description: `${inv.invoice_number} → ${inv.client_name}` });
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center animate-pulse">
+          <span className="text-primary-foreground font-black text-sm">S</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -196,10 +166,10 @@ const InvoicesPage = () => {
       {/* Summary cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {[
-          { label: "Total Revenue", value: fmt(totalRevenue), color: "text-foreground", sub: `${allPayments.length} invoices` },
+          { label: "Total Revenue", value: fmt(totalRevenue), color: "text-foreground", sub: `${invoices.length} invoices` },
           { label: "Collected", value: fmt(totalCollected), color: "text-emerald-500", pct: totalRevenue > 0 ? Math.round((totalCollected / totalRevenue) * 100) : 0 },
-          { label: "Pending", value: fmt(totalPending), color: "text-amber-500", sub: `${allPayments.filter(p => p.status === "pending").length} pending` },
-          { label: "Overdue", value: fmt(overdueAmount), color: "text-red-500", sub: `${overduePayments.length} overdue` },
+          { label: "Pending", value: fmt(totalPending), color: "text-amber-500", sub: `${invoices.filter(i => !["paid"].includes(i.status)).length} pending` },
+          { label: "Overdue", value: fmt(overdueAmount), color: "text-red-500", sub: `${overdueInvoices.length} overdue` },
         ].map(s => (
           <Card key={s.label}>
             <CardContent className="p-4">
@@ -212,13 +182,13 @@ const InvoicesPage = () => {
         ))}
       </div>
 
-      {/* Quick Filter Tabs + Search */}
+      {/* Tabs + Search */}
       <div className="flex items-center gap-3 flex-wrap">
         <div className="flex gap-1">
           {[
             { key: "all", label: "All", count: invoices.length },
-            { key: "pending", label: "Pending", count: invoices.filter(i => ["draft", "partial"].includes(i.status)).length },
-            { key: "overdue", label: "Overdue", count: invoices.filter(i => i.status === "overdue").length },
+            { key: "pending", label: "Pending", count: invoices.filter(i => ["draft", "partial", "sent"].includes(getEffectiveStatus(i))).length },
+            { key: "overdue", label: "Overdue", count: overdueInvoices.length },
             { key: "paid", label: "Paid", count: invoices.filter(i => i.status === "paid").length },
           ].map(t => (
             <button
@@ -260,30 +230,27 @@ const InvoicesPage = () => {
                 <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">No invoices found</TableCell></TableRow>
               )}
               {filteredInvoices.map((inv) => {
-                const isOverdue = inv.status !== "paid" && new Date(inv.dueDate) < new Date();
+                const status = getEffectiveStatus(inv);
                 return (
                   <TableRow key={inv.id} className="cursor-pointer hover:bg-muted/30" onClick={() => setViewInvoice(inv)}>
                     <TableCell>
-                      <span className="text-sm font-mono font-medium text-primary">{inv.invoiceNumber}</span>
+                      <span className="text-sm font-mono font-medium text-primary">{inv.invoice_number}</span>
                     </TableCell>
-                    <TableCell className="text-sm font-medium text-foreground">{inv.client}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{inv.project}</TableCell>
-                    <TableCell className="text-sm font-bold text-foreground">{fmt(inv.totalAmount)}</TableCell>
-                    <TableCell className="text-sm font-medium text-emerald-500">{fmt(inv.paidAmount)}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{new Date(inv.dueDate).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}</TableCell>
+                    <TableCell className="text-sm font-medium text-foreground">{inv.client_name}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{inv.project_name || "—"}</TableCell>
+                    <TableCell className="text-sm font-bold text-foreground">{fmt(inv.total_amount)}</TableCell>
+                    <TableCell className="text-sm font-medium text-emerald-500">{fmt(inv.amount_paid)}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {inv.due_date ? new Date(inv.due_date).toLocaleDateString("en-IN", { day: "numeric", month: "short" }) : "—"}
+                    </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className={cn("text-[10px]",
-                        inv.status === "paid" ? statusConfig.paid.class :
-                        isOverdue ? statusConfig.overdue.class :
-                        inv.status === "partial" ? statusConfig.partial.class :
-                        statusConfig.pending.class
-                      )}>
-                        {isOverdue ? "Overdue" : inv.status}
+                      <Badge variant="outline" className={cn("text-[10px]", statusStyles[status] || statusStyles.pending)}>
+                        {status}
                       </Badge>
                     </TableCell>
                     <TableCell onClick={(e) => e.stopPropagation()}>
                       <div className="flex gap-1">
-                        {inv.status !== "paid" && (
+                        {status !== "paid" && (
                           <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => { setSelectedInvoice(inv); setRecordPaymentOpen(true); }}>
                             <IndianRupee className="h-3 w-3 mr-1" /> Pay
                           </Button>
@@ -303,77 +270,7 @@ const InvoicesPage = () => {
         </CardContent>
       </Card>
 
-      {/* Per-Project Breakdown */}
-      <div className="space-y-3">
-        <h2 className="text-sm font-semibold text-foreground">Project-wise Breakdown</h2>
-        {sampleProjects.filter(p => p.payments.length > 0).map((project) => {
-          const projectPaid = project.payments.reduce((s, p) => s + p.paidAmount, 0);
-          const projectTotal = project.payments.reduce((s, p) => s + p.amount, 0);
-          const pct = projectTotal > 0 ? Math.round((projectPaid / projectTotal) * 100) : 0;
-          return (
-            <Card key={project.id}>
-              <div className="flex items-center justify-between p-3 border-b border-border cursor-pointer hover:bg-muted/30" onClick={() => navigate(`/projects/${project.id}`)}>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-semibold text-foreground">{project.clientName} & {project.partnerName}</h3>
-                  <Badge variant="outline" className="text-[10px]">{project.package}</Badge>
-                  <ArrowUpRight className="h-3 w-3 text-muted-foreground" />
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-medium text-foreground">{fmt(projectPaid)} / {fmt(projectTotal)}</span>
-                  <div className="w-16 h-1.5 rounded-full bg-muted overflow-hidden">
-                    <div className={cn("h-full rounded-full", pct >= 100 ? "bg-emerald-500" : "bg-primary")} style={{ width: `${pct}%` }} />
-                  </div>
-                </div>
-              </div>
-              <CardContent className="p-0 divide-y divide-border">
-                {project.payments.map((payment) => {
-                  const isOverdue = payment.status !== "paid" && new Date(payment.dueDate) < new Date();
-                  const tCfg = typeConfig[payment.type];
-                  const ModeIcon = payment.mode ? modeIcons[payment.mode] || CreditCard : CreditCard;
-                  return (
-                    <div key={payment.id} className="flex flex-col sm:flex-row sm:items-center justify-between px-4 py-3 gap-2 hover:bg-muted/20">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className={cn("h-8 w-8 rounded-lg flex items-center justify-center shrink-0", tCfg.class)}>
-                          <IndianRupee className="h-3.5 w-3.5" />
-                        </div>
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2">
-                            <p className="text-sm font-medium text-foreground">{payment.label}</p>
-                            <Badge variant="outline" className={cn("text-[9px] px-1.5 py-0", tCfg.class)}>{tCfg.label}</Badge>
-                          </div>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
-                            {payment.invoiceNumber && <span className="flex items-center gap-1"><FileText className="h-3 w-3" />{payment.invoiceNumber}</span>}
-                            <span className="flex items-center gap-1">
-                              <CalendarDays className="h-3 w-3" />
-                              Due {new Date(payment.dueDate).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
-                            </span>
-                            {payment.paidDate && (
-                              <span className="flex items-center gap-1"><ModeIcon className="h-3 w-3" /> Paid {new Date(payment.paidDate).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}</span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4 shrink-0">
-                        <div className="text-right">
-                          <p className="text-sm font-medium text-foreground">{fmt(payment.amount)}</p>
-                          {payment.paidAmount > 0 && payment.paidAmount < payment.amount && (
-                            <p className="text-xs text-muted-foreground">{fmt(payment.paidAmount)} paid</p>
-                          )}
-                        </div>
-                        <Badge variant="outline" className={cn("text-[10px] gap-1", isOverdue ? statusConfig.overdue.class : statusConfig[payment.status].class)}>
-                          {isOverdue ? "Overdue" : statusConfig[payment.status].label}
-                        </Badge>
-                      </div>
-                    </div>
-                  );
-                })}
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
-
-      {/* ═══ CREATE INVOICE SHEET ═══ */}
+      {/* CREATE INVOICE SHEET */}
       <Sheet open={createOpen} onOpenChange={setCreateOpen}>
         <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
           <SheetHeader>
@@ -385,7 +282,7 @@ const InvoicesPage = () => {
               <Label>Client *</Label>
               <Select value={newClient} onValueChange={setNewClient}>
                 <SelectTrigger><SelectValue placeholder="Select client" /></SelectTrigger>
-                <SelectContent>{clientNames.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+                <SelectContent>{clients.map(c => <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
@@ -393,18 +290,7 @@ const InvoicesPage = () => {
               <Select value={newProject} onValueChange={setNewProject}>
                 <SelectTrigger><SelectValue placeholder="Select project" /></SelectTrigger>
                 <SelectContent>
-                  {sampleProjects.map(p => <SelectItem key={p.id} value={p.package}>{p.package} - {p.clientName}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Payment Type</Label>
-              <Select value={newType} onValueChange={(v) => setNewType(v as PaymentType)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="advance">Advance</SelectItem>
-                  <SelectItem value="milestone">Milestone</SelectItem>
-                  <SelectItem value="final">Final</SelectItem>
+                  {projects.map(p => <SelectItem key={p.id} value={p.project_name}>{p.project_name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -445,13 +331,13 @@ const InvoicesPage = () => {
         </SheetContent>
       </Sheet>
 
-      {/* ═══ RECORD PAYMENT SHEET ═══ */}
+      {/* RECORD PAYMENT SHEET */}
       <Sheet open={recordPaymentOpen} onOpenChange={setRecordPaymentOpen}>
         <SheetContent className="w-full sm:max-w-md overflow-y-auto">
           <SheetHeader>
             <SheetTitle>Record Payment</SheetTitle>
             <SheetDescription>
-              {selectedInvoice && `${selectedInvoice.invoiceNumber} - ${selectedInvoice.client}`}
+              {selectedInvoice && `${selectedInvoice.invoice_number} - ${selectedInvoice.client_name}`}
             </SheetDescription>
           </SheetHeader>
           {selectedInvoice && (
@@ -460,21 +346,21 @@ const InvoicesPage = () => {
                 <CardContent className="p-3 space-y-1">
                   <div className="flex justify-between">
                     <span className="text-xs text-muted-foreground">Invoice Total</span>
-                    <span className="text-sm font-bold">{fmt(selectedInvoice.totalAmount)}</span>
+                    <span className="text-sm font-bold">{fmt(selectedInvoice.total_amount)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-xs text-muted-foreground">Already Paid</span>
-                    <span className="text-sm font-medium text-emerald-500">{fmt(selectedInvoice.paidAmount)}</span>
+                    <span className="text-sm font-medium text-emerald-500">{fmt(selectedInvoice.amount_paid)}</span>
                   </div>
                   <div className="flex justify-between border-t border-border pt-1">
                     <span className="text-xs font-medium">Balance Due</span>
-                    <span className="text-sm font-bold text-amber-500">{fmt(selectedInvoice.totalAmount - selectedInvoice.paidAmount)}</span>
+                    <span className="text-sm font-bold text-amber-500">{fmt(selectedInvoice.total_amount - selectedInvoice.amount_paid)}</span>
                   </div>
                 </CardContent>
               </Card>
               <div className="space-y-2">
                 <Label>Amount (₹) *</Label>
-                <Input type="number" placeholder={String(selectedInvoice.totalAmount - selectedInvoice.paidAmount)} value={payAmount} onChange={(e) => setPayAmount(e.target.value)} />
+                <Input type="number" placeholder={String(selectedInvoice.total_amount - selectedInvoice.amount_paid)} value={payAmount} onChange={(e) => setPayAmount(e.target.value)} />
               </div>
               <div className="space-y-2">
                 <Label>Payment Mode *</Label>
@@ -501,13 +387,13 @@ const InvoicesPage = () => {
         </SheetContent>
       </Sheet>
 
-      {/* ═══ VIEW INVOICE DIALOG ═══ */}
+      {/* VIEW INVOICE DIALOG */}
       <Dialog open={!!viewInvoice} onOpenChange={(o) => !o && setViewInvoice(null)}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Receipt className="h-5 w-5 text-primary" />
-              {viewInvoice?.invoiceNumber}
+              {viewInvoice?.invoice_number}
             </DialogTitle>
           </DialogHeader>
           {viewInvoice && (
@@ -515,51 +401,51 @@ const InvoicesPage = () => {
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div>
                   <p className="text-xs text-muted-foreground">Client</p>
-                  <p className="font-medium text-foreground">{viewInvoice.client}</p>
+                  <p className="font-medium text-foreground">{viewInvoice.client_name}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Project</p>
-                  <p className="font-medium text-foreground">{viewInvoice.project}</p>
+                  <p className="font-medium text-foreground">{viewInvoice.project_name || "—"}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Issue Date</p>
-                  <p className="font-medium text-foreground">{viewInvoice.issueDate}</p>
+                  <p className="text-xs text-muted-foreground">Created</p>
+                  <p className="font-medium text-foreground">{new Date(viewInvoice.created_at).toLocaleDateString("en-IN")}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Due Date</p>
-                  <p className="font-medium text-foreground">{viewInvoice.dueDate}</p>
+                  <p className="font-medium text-foreground">{viewInvoice.due_date || "—"}</p>
                 </div>
               </div>
               <div className="border border-border rounded-lg p-3 space-y-2">
-                {viewInvoice.items.map((item, i) => (
+                {(viewInvoice.items as any[]).map((item: any, i: number) => (
                   <div key={i} className="flex justify-between text-sm">
-                    <span>{item.description}</span>
+                    <span>{item.description || item.name}</span>
                     <span className="font-bold">{fmt(item.amount)}</span>
                   </div>
                 ))}
                 <div className="border-t border-border pt-2 flex justify-between text-sm font-bold">
                   <span>Total</span>
-                  <span>{fmt(viewInvoice.totalAmount)}</span>
+                  <span>{fmt(viewInvoice.total_amount)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Paid</span>
-                  <span className="text-emerald-500 font-medium">{fmt(viewInvoice.paidAmount)}</span>
+                  <span className="text-emerald-500 font-medium">{fmt(viewInvoice.amount_paid)}</span>
                 </div>
                 <div className="flex justify-between text-sm font-bold">
                   <span>Balance</span>
-                  <span className="text-amber-500">{fmt(viewInvoice.totalAmount - viewInvoice.paidAmount)}</span>
+                  <span className="text-amber-500">{fmt(viewInvoice.total_amount - viewInvoice.amount_paid)}</span>
                 </div>
               </div>
               <div className="flex gap-2">
-                {viewInvoice.status !== "paid" && (
+                {getEffectiveStatus(viewInvoice) !== "paid" && (
                   <Button size="sm" className="flex-1" onClick={() => { setSelectedInvoice(viewInvoice); setRecordPaymentOpen(true); setViewInvoice(null); }}>
                     <IndianRupee className="h-3.5 w-3.5 mr-1" /> Record Payment
                   </Button>
                 )}
-                <Button size="sm" variant="outline" className="flex-1" onClick={() => { toast.success("Invoice PDF downloaded"); }}>
+                <Button size="sm" variant="outline" className="flex-1" onClick={() => toast.success("Invoice PDF downloaded")}>
                   <Download className="h-3.5 w-3.5 mr-1" /> Download
                 </Button>
-                <Button size="sm" variant="outline" onClick={() => { toast.success("Copied invoice link"); }}>
+                <Button size="sm" variant="outline" onClick={() => toast.success("Copied invoice link")}>
                   <Copy className="h-3.5 w-3.5" />
                 </Button>
               </div>
