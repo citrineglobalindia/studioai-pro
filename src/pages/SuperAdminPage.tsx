@@ -328,6 +328,43 @@ export default function SuperAdminPage() {
           </Card>
         </div>
 
+        {/* Platform Analytics */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <Card>
+            <CardContent className="p-5 flex items-center gap-4">
+              <div className="h-11 w-11 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                <Users className="h-5 w-5 text-blue-400" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-foreground">{totalAnalytics.clients}</p>
+                <p className="text-xs text-muted-foreground">Total Clients</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-5 flex items-center gap-4">
+              <div className="h-11 w-11 rounded-xl bg-violet-500/10 flex items-center justify-center">
+                <BarChart3 className="h-5 w-5 text-violet-400" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-foreground">{totalAnalytics.projects}</p>
+                <p className="text-xs text-muted-foreground">Total Projects</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-5 flex items-center gap-4">
+              <div className="h-11 w-11 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+                <Activity className="h-5 w-5 text-emerald-400" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-foreground">₹{totalAnalytics.revenue.toLocaleString("en-IN")}</p>
+                <p className="text-xs text-muted-foreground">Total Revenue Collected</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Search & Table */}
         <Card>
           <CardHeader className="pb-4">
