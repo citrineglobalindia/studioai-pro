@@ -16,19 +16,6 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Check if any super admin already exists
-    const { data: existing } = await supabaseAdmin
-      .from("super_admins")
-      .select("id")
-      .limit(1);
-
-    if (existing && existing.length > 0) {
-      return new Response(
-        JSON.stringify({ error: "Super admin already exists. This endpoint can only be used once." }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
     const body = await req.json();
     const { email, password } = body;
 
