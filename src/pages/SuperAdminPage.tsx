@@ -423,6 +423,15 @@ export default function SuperAdminPage() {
           </CardContent>
         </Card>
       </div>
+
+      {moduleControlStudio && (
+        <ModuleControlDialog
+          open={!!moduleControlStudio}
+          onOpenChange={(open) => !open && setModuleControlStudio(null)}
+          studioId={moduleControlStudio.id}
+          studioName={moduleControlStudio.name}
+        />
+      )}
     </div>
   );
 }
