@@ -797,7 +797,7 @@ const HRAttendance = () => {
             </div>
 
             <div className="space-y-2.5">
-              {teamMembers.map((member, i) => {
+              {teamMembersData.map((member, i) => {
                 const cfg = statusConfig[member.status];
                 const StatusIcon = cfg.icon;
                 return (
