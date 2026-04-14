@@ -54,6 +54,12 @@ import SuperAdminPage from "./pages/SuperAdminPage";
 import SADashboard from "./pages/superadmin/SADashboard";
 import SAStudios from "./pages/superadmin/SAStudios";
 import SAModules from "./pages/superadmin/SAModules";
+import SASubscriptions from "./pages/superadmin/SASubscriptions";
+import SAUsers from "./pages/superadmin/SAUsers";
+import SAActivity from "./pages/superadmin/SAActivity";
+import SAReports from "./pages/superadmin/SAReports";
+import SANotifications from "./pages/superadmin/SANotifications";
+import SASettings from "./pages/superadmin/SASettings";
 import SAPlaceholder from "./pages/superadmin/SAPlaceholder";
 
 const queryClient = new QueryClient();
