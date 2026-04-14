@@ -155,6 +155,7 @@ const App = () => (
                     <Route path="activity" element={<SAActivity />} />
                     <Route path="reports" element={<SAReports />} />
                     <Route path="notifications" element={<SANotifications />} />
+                    <Route path="system" element={<SASystemControl />} />
                     <Route path="settings" element={<SASettings />} />
                   </Route>
                   <Route path="/*" element={<ProtectedRoutes />} />
