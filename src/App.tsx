@@ -149,12 +149,12 @@ const App = () => (
                     <Route index element={<SADashboard />} />
                     <Route path="studios" element={<SAStudios />} />
                     <Route path="modules" element={<SAModules />} />
-                    <Route path="subscriptions" element={<SAPlaceholder />} />
-                    <Route path="users" element={<SAPlaceholder />} />
-                    <Route path="activity" element={<SAPlaceholder />} />
-                    <Route path="reports" element={<SAPlaceholder />} />
-                    <Route path="notifications" element={<SAPlaceholder />} />
-                    <Route path="settings" element={<SAPlaceholder />} />
+                    <Route path="subscriptions" element={<SASubscriptions />} />
+                    <Route path="users" element={<SAUsers />} />
+                    <Route path="activity" element={<SAActivity />} />
+                    <Route path="reports" element={<SAReports />} />
+                    <Route path="notifications" element={<SANotifications />} />
+                    <Route path="settings" element={<SASettings />} />
                   </Route>
                   <Route path="/*" element={<ProtectedRoutes />} />
                 </Routes>
