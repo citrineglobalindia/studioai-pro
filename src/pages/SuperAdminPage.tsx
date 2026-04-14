@@ -409,12 +409,22 @@ export default function SuperAdminPage() {
                               {sub ? plans[sub.plan_id] || "—" : "No plan"}
                             </span>
                           </TableCell>
+                          <TableCell className="text-center">
+                            <span className="text-sm font-medium text-foreground">{orgStats.clients}</span>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <span className="text-sm font-medium text-foreground">{orgStats.projects}</span>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <span className="text-sm font-medium text-foreground">
+                              ₹{orgStats.revenue.toLocaleString("en-IN")}
+                            </span>
+                          </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                               <Users className="h-3.5 w-3.5" />
                               {memberCount}
                             </div>
-                          </TableCell>
                           <TableCell>
                             <span className="text-sm text-muted-foreground">
                               {org.city || "—"}
