@@ -70,23 +70,7 @@ const ledgerEmployees: EmployeeWeek[] = [
   ], noShows: 0, underworkedDays: 0 },
 ];
 
-const teamMembers = [
-  { id: "1", name: "John Smith", role: "Designer", status: "present" as const, checkIn: "09:02 AM", checkOut: "—", present: 18, absent: 1, leave: 1 },
-  { id: "2", name: "Sarah Wilson", role: "Developer", status: "present" as const, checkIn: "08:55 AM", checkOut: "—", present: 20, absent: 0, leave: 2 },
-  { id: "3", name: "Mike Johnson", role: "Manager", status: "leave" as const, present: 15, absent: 2, leave: 5, checkIn: undefined, checkOut: undefined },
-  { id: "4", name: "Emily Davis", role: "Designer", status: "present" as const, checkIn: "09:12 AM", checkOut: "—", present: 17, absent: 2, leave: 1 },
-  { id: "5", name: "David Brown", role: "Developer", status: "absent" as const, present: 14, absent: 4, leave: 2, checkIn: undefined, checkOut: undefined },
-  { id: "6", name: "Lisa Taylor", role: "HR", status: "halfday" as const, checkIn: "09:00 AM", checkOut: "01:15 PM", present: 16, absent: 2, leave: 2 },
-];
-
-const reportData = [
-  { name: "John Smith", role: "Designer", workingDays: 22, present: 18, absent: 1, halfDay: 1, leave: 2, lateIns: 3 },
-  { name: "Sarah Wilson", role: "Developer", workingDays: 22, present: 20, absent: 0, halfDay: 0, leave: 2, lateIns: 1 },
-  { name: "Mike Johnson", role: "Manager", workingDays: 22, present: 15, absent: 2, halfDay: 1, leave: 4, lateIns: 2 },
-  { name: "Emily Davis", role: "Designer", workingDays: 22, present: 17, absent: 2, halfDay: 1, leave: 2, lateIns: 4 },
-  { name: "David Brown", role: "Developer", workingDays: 22, present: 14, absent: 4, halfDay: 2, leave: 2, lateIns: 2 },
-  { name: "Lisa Taylor", role: "HR", workingDays: 22, present: 20, absent: 1, halfDay: 0, leave: 1, lateIns: 0 },
-];
+// Team and report data are now derived from DB inside the component
 
 const leaveHistory = [
   { id: "LV-001", type: "Casual Leave", from: "17 Apr 2026", to: "17 Apr 2026", reason: "Personal work", status: "Approved", applied: "15 Apr 2026" },
