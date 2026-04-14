@@ -406,6 +406,22 @@ const HRAttendance = () => {
               </div>
             </div>
 
+            {/* Employee Selector */}
+            {employees.length > 0 && (
+              <div className="mb-3">
+                <Select value={selectedEmployeeId} onValueChange={setSelectedEmployeeId}>
+                  <SelectTrigger className="bg-white/10 border-white/20 text-white w-full md:w-[250px]">
+                    <SelectValue placeholder="Select Employee" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {employees.map(emp => (
+                      <SelectItem key={emp.id} value={emp.id}>{emp.full_name} — {emp.role}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
             {isCheckedIn && checkInTime && (
               <div className="flex items-center gap-2 bg-white/10 rounded-xl px-3 py-2 mb-3 w-fit">
                 <LogIn size={14} className="text-emerald-400" />
