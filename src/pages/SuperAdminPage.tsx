@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { CreateStudioDialog } from "@/components/superadmin/CreateStudioDialog";
+import { ModuleControlDialog } from "@/components/superadmin/ModuleControlDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,6 +30,7 @@ import {
   LogOut,
   BarChart3,
   Crown,
+  Settings2,
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -70,6 +72,7 @@ export default function SuperAdminPage() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "active" | "trial" | "inactive">("all");
   const [loading, setLoading] = useState(true);
+  const [moduleControlStudio, setModuleControlStudio] = useState<{ id: string; name: string } | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -389,18 +392,26 @@ export default function SuperAdminPage() {
                             </span>
                           </TableCell>
                           <TableCell className="text-right">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="opacity-0 group-hover:opacity-100 transition-opacity"
-                              onClick={() => {
-                                toast.info(`Viewing ${org.name}'s platform`, {
-                                  description: "Tenant impersonation coming soon.",
-                                });
-                              }}
-                            >
-                              <Eye className="h-4 w-4 mr-1" /> View
-                            </Button>
+                            <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setModuleControlStudio({ id: org.id, name: org.name })}
+                              >
+                                <Settings2 className="h-4 w-4 mr-1" /> Modules
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  toast.info(`Viewing ${org.name}'s platform`, {
+                                    description: "Tenant impersonation coming soon.",
+                                  });
+                                }}
+                              >
+                                <Eye className="h-4 w-4 mr-1" /> View
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       );
@@ -412,6 +423,15 @@ export default function SuperAdminPage() {
           </CardContent>
         </Card>
       </div>
+
+      {moduleControlStudio && (
+        <ModuleControlDialog
+          open={!!moduleControlStudio}
+          onOpenChange={(open) => !open && setModuleControlStudio(null)}
+          studioId={moduleControlStudio.id}
+          studioName={moduleControlStudio.name}
+        />
+      )}
     </div>
   );
 }
