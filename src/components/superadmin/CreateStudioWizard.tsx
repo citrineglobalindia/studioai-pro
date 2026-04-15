@@ -171,11 +171,13 @@ export function CreateStudioWizard({ plans, onCreated }: CreateStudioWizardProps
       <DialogTrigger asChild>
         <Button size="sm"><Plus className="h-4 w-4 mr-2" /> Create Studio</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-xl max-h-[85vh] overflow-hidden flex flex-col p-0">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-hidden flex flex-col p-0 gap-0 border-primary/10 shadow-2xl shadow-primary/5">
         {/* Header */}
-        <DialogHeader className="px-6 pt-6 pb-0">
-          <DialogTitle className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-primary" />
+        <DialogHeader className="px-6 pt-6 pb-2 bg-gradient-to-b from-primary/5 to-transparent">
+          <DialogTitle className="flex items-center gap-2.5 text-lg">
+            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-lg shadow-primary/20">
+              <Sparkles className="h-4 w-4 text-primary-foreground" />
+            </div>
             {done ? "Studio Created!" : "New Studio Wizard"}
           </DialogTitle>
         </DialogHeader>
@@ -219,27 +221,40 @@ export function CreateStudioWizard({ plans, onCreated }: CreateStudioWizardProps
           <>
             {/* Stepper */}
             <div className="px-6 pt-4">
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-0.5">
                 {STEPS.map((step, i) => {
                   const isActive = i === stepIndex;
                   const isComplete = i < stepIndex;
                   return (
                     <div key={step.id} className="flex items-center flex-1">
                       <button
-                        onClick={() => { if (i <= stepIndex) setCurrentStep(step.id); }}
+                        onClick={() => { if (i <= stepIndex) { setSlideDir(i < stepIndex ? "right" : "left"); setCurrentStep(step.id); } }}
                         className={cn(
-                          "flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all w-full",
-                          isActive && "bg-primary/10 text-primary border border-primary/30",
-                          isComplete && "text-emerald-500 cursor-pointer",
-                          !isActive && !isComplete && "text-muted-foreground"
+                          "flex items-center gap-1.5 px-2.5 py-2 rounded-xl text-xs font-medium transition-all w-full group",
+                          isActive && "bg-primary text-primary-foreground shadow-md shadow-primary/25",
+                          isComplete && "bg-primary/10 text-primary cursor-pointer hover:bg-primary/15",
+                          !isActive && !isComplete && "text-muted-foreground hover:text-foreground/60"
                         )}
                       >
-                        <step.icon className="h-3.5 w-3.5 shrink-0" />
+                        <div className={cn(
+                          "h-6 w-6 rounded-lg flex items-center justify-center shrink-0 transition-all",
+                          isActive && "bg-primary-foreground/20",
+                          isComplete && "bg-primary/15",
+                          !isActive && !isComplete && "bg-muted"
+                        )}>
+                          {isComplete ? (
+                            <CheckCircle2 className="h-3.5 w-3.5" />
+                          ) : (
+                            <step.icon className="h-3.5 w-3.5" />
+                          )}
+                        </div>
                         <span className="hidden sm:inline truncate">{step.label}</span>
-                        {isComplete && <CheckCircle2 className="h-3 w-3 ml-auto shrink-0" />}
                       </button>
                       {i < STEPS.length - 1 && (
-                        <div className={cn("h-px w-4 shrink-0 mx-1", isComplete ? "bg-emerald-500" : "bg-border")} />
+                        <div className={cn(
+                          "h-0.5 w-3 shrink-0 mx-0.5 rounded-full transition-colors",
+                          isComplete ? "bg-primary" : "bg-border"
+                        )} />
                       )}
                     </div>
                   );
@@ -247,28 +262,20 @@ export function CreateStudioWizard({ plans, onCreated }: CreateStudioWizardProps
               </div>
               {/* Progress Bar */}
               <div className="mt-3">
-                <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                <div className="h-1 w-full rounded-full bg-muted/80 overflow-hidden">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-primary to-primary/80 transition-all duration-500 ease-out"
+                    className="h-full rounded-full bg-gradient-to-r from-primary via-primary/90 to-primary/70 transition-all duration-500 ease-out"
                     style={{ width: `${((stepIndex + 1) / STEPS.length) * 100}%` }}
                   />
-                </div>
-                <div className="flex justify-between mt-1.5">
-                  <span className="text-[10px] text-muted-foreground">
-                    Step {stepIndex + 1} of {STEPS.length}
-                  </span>
-                  <span className="text-[10px] text-muted-foreground">
-                    {Math.round(((stepIndex + 1) / STEPS.length) * 100)}%
-                  </span>
                 </div>
               </div>
             </div>
 
             {/* Step Content */}
-            <div className="flex-1 overflow-hidden px-6 py-4">
+            <div className="flex-1 min-h-0 px-6 py-4">
               <div
                 key={currentStep}
-                className="h-full overflow-y-auto"
+                className="h-full overflow-y-auto pr-1 scrollbar-thin"
                 style={{
                   animation: slideDir === "left"
                     ? "wizard-slide-left 0.25s ease-out"
@@ -501,23 +508,23 @@ export function CreateStudioWizard({ plans, onCreated }: CreateStudioWizardProps
             </div>
 
             {/* Footer */}
-            <div className="flex items-center justify-between px-6 py-4 border-t border-border bg-muted/30">
-              <div className="text-xs text-muted-foreground">
-                Step {stepIndex + 1} of {STEPS.length}
-              </div>
+            <div className="flex items-center justify-between px-6 py-4 border-t border-border/50 bg-muted/20">
+              <span className="text-xs text-muted-foreground font-medium">
+                Step {stepIndex + 1} of {STEPS.length} — <span className="text-foreground/70">{STEPS[stepIndex].label}</span>
+              </span>
               <div className="flex gap-2">
                 {stepIndex > 0 && (
-                  <Button variant="outline" size="sm" onClick={prev}>
-                    <ArrowLeft className="h-3.5 w-3.5 mr-1" /> Back
+                  <Button variant="outline" size="sm" onClick={prev} className="gap-1.5">
+                    <ArrowLeft className="h-3.5 w-3.5" /> Back
                   </Button>
                 )}
                 {stepIndex < STEPS.length - 1 ? (
-                  <Button size="sm" onClick={next} disabled={!canProceed()}>
-                    Next <ArrowRight className="h-3.5 w-3.5 ml-1" />
+                  <Button size="sm" onClick={next} disabled={!canProceed()} className="gap-1.5 shadow-md shadow-primary/20">
+                    Next <ArrowRight className="h-3.5 w-3.5" />
                   </Button>
                 ) : (
-                  <Button size="sm" onClick={handleCreate} disabled={loading || !canProceed()}>
-                    {loading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Sparkles className="h-3.5 w-3.5 mr-1" />}
+                  <Button size="sm" onClick={handleCreate} disabled={loading || !canProceed()} className="gap-1.5 shadow-md shadow-primary/20">
+                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
                     {loading ? "Creating..." : "Create Studio"}
                   </Button>
                 )}
