@@ -173,9 +173,11 @@ export function CreateStudioWizard({ plans, onCreated }: CreateStudioWizardProps
       </DialogTrigger>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-hidden flex flex-col p-0 gap-0 border-primary/10 shadow-2xl shadow-primary/5">
         {/* Header */}
-        <DialogHeader className="px-6 pt-6 pb-0">
-          <DialogTitle className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-primary" />
+        <DialogHeader className="px-6 pt-6 pb-2 bg-gradient-to-b from-primary/5 to-transparent">
+          <DialogTitle className="flex items-center gap-2.5 text-lg">
+            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-lg shadow-primary/20">
+              <Sparkles className="h-4 w-4 text-primary-foreground" />
+            </div>
             {done ? "Studio Created!" : "New Studio Wizard"}
           </DialogTitle>
         </DialogHeader>
