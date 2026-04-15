@@ -221,27 +221,40 @@ export function CreateStudioWizard({ plans, onCreated }: CreateStudioWizardProps
           <>
             {/* Stepper */}
             <div className="px-6 pt-4">
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-0.5">
                 {STEPS.map((step, i) => {
                   const isActive = i === stepIndex;
                   const isComplete = i < stepIndex;
                   return (
                     <div key={step.id} className="flex items-center flex-1">
                       <button
-                        onClick={() => { if (i <= stepIndex) setCurrentStep(step.id); }}
+                        onClick={() => { if (i <= stepIndex) { setSlideDir(i < stepIndex ? "right" : "left"); setCurrentStep(step.id); } }}
                         className={cn(
-                          "flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all w-full",
-                          isActive && "bg-primary/10 text-primary border border-primary/30",
-                          isComplete && "text-emerald-500 cursor-pointer",
-                          !isActive && !isComplete && "text-muted-foreground"
+                          "flex items-center gap-1.5 px-2.5 py-2 rounded-xl text-xs font-medium transition-all w-full group",
+                          isActive && "bg-primary text-primary-foreground shadow-md shadow-primary/25",
+                          isComplete && "bg-primary/10 text-primary cursor-pointer hover:bg-primary/15",
+                          !isActive && !isComplete && "text-muted-foreground hover:text-foreground/60"
                         )}
                       >
-                        <step.icon className="h-3.5 w-3.5 shrink-0" />
+                        <div className={cn(
+                          "h-6 w-6 rounded-lg flex items-center justify-center shrink-0 transition-all",
+                          isActive && "bg-primary-foreground/20",
+                          isComplete && "bg-primary/15",
+                          !isActive && !isComplete && "bg-muted"
+                        )}>
+                          {isComplete ? (
+                            <CheckCircle2 className="h-3.5 w-3.5" />
+                          ) : (
+                            <step.icon className="h-3.5 w-3.5" />
+                          )}
+                        </div>
                         <span className="hidden sm:inline truncate">{step.label}</span>
-                        {isComplete && <CheckCircle2 className="h-3 w-3 ml-auto shrink-0" />}
                       </button>
                       {i < STEPS.length - 1 && (
-                        <div className={cn("h-px w-4 shrink-0 mx-1", isComplete ? "bg-emerald-500" : "bg-border")} />
+                        <div className={cn(
+                          "h-0.5 w-3 shrink-0 mx-0.5 rounded-full transition-colors",
+                          isComplete ? "bg-primary" : "bg-border"
+                        )} />
                       )}
                     </div>
                   );
@@ -249,19 +262,11 @@ export function CreateStudioWizard({ plans, onCreated }: CreateStudioWizardProps
               </div>
               {/* Progress Bar */}
               <div className="mt-3">
-                <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                <div className="h-1 w-full rounded-full bg-muted/80 overflow-hidden">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-primary to-primary/80 transition-all duration-500 ease-out"
+                    className="h-full rounded-full bg-gradient-to-r from-primary via-primary/90 to-primary/70 transition-all duration-500 ease-out"
                     style={{ width: `${((stepIndex + 1) / STEPS.length) * 100}%` }}
                   />
-                </div>
-                <div className="flex justify-between mt-1.5">
-                  <span className="text-[10px] text-muted-foreground">
-                    Step {stepIndex + 1} of {STEPS.length}
-                  </span>
-                  <span className="text-[10px] text-muted-foreground">
-                    {Math.round(((stepIndex + 1) / STEPS.length) * 100)}%
-                  </span>
                 </div>
               </div>
             </div>
