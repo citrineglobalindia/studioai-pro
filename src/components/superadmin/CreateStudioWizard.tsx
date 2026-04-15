@@ -480,6 +480,7 @@ export function CreateStudioWizard({ plans, onCreated }: CreateStudioWizardProps
                   </div>
                 );
               })()}
+              </div>
             </div>
 
             {/* Footer */}
