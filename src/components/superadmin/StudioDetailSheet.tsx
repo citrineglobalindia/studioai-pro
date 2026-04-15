@@ -19,7 +19,7 @@ import {
   Building2, Users, FolderKanban, IndianRupee, Shield, Blocks,
   Eye, Save, Loader2, MapPin, Phone, Globe, Instagram, Palette,
   UserCheck, UserX, CheckCircle2, XCircle, LogIn, Copy, ExternalLink,
-  Trash2, AlertTriangle,
+  Trash2, AlertTriangle, Sparkles, RotateCcw,
 } from "lucide-react";
 import { toast } from "sonner";
 
