@@ -171,7 +171,7 @@ export function CreateStudioWizard({ plans, onCreated }: CreateStudioWizardProps
       <DialogTrigger asChild>
         <Button size="sm"><Plus className="h-4 w-4 mr-2" /> Create Studio</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-hidden !flex !flex-col p-0 gap-0 border-primary/10 shadow-2xl shadow-primary/5">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] p-0 gap-0 border-primary/10 shadow-2xl shadow-primary/5" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Header */}
         <DialogHeader className="shrink-0 px-6 pt-6 pb-2 bg-gradient-to-b from-primary/5 to-transparent">
           <DialogTitle className="flex items-center gap-2.5 text-lg">
@@ -272,10 +272,10 @@ export function CreateStudioWizard({ plans, onCreated }: CreateStudioWizardProps
             </div>
 
             {/* Step Content */}
-            <div className="flex-1 min-h-0 overflow-hidden px-6 py-4">
+            <div className="flex-1 min-h-0 px-6 pt-4 pb-0">
               <div
                 key={currentStep}
-                className="h-full overflow-y-auto pr-2 pb-24 scrollbar-thin overscroll-contain"
+                className="h-full overflow-y-auto pr-2 pb-16 overscroll-contain"
                 style={{
                   animation: slideDir === "left"
                     ? "wizard-slide-left 0.25s ease-out"
