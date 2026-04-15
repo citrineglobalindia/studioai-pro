@@ -150,6 +150,20 @@ export function StudioDetailSheet({ open, onOpenChange, studioId, studioName, on
     toast.info(`Opening ${studioName} dashboard in new tab`);
   };
 
+  const handleResetStudio = async () => {
+    if (confirmText !== "RESET") return;
+    setResetting(true);
+    const tables = ["deliverables", "attendance", "leaves", "invoices", "quotations", "albums", "expenses", "projects", "clients", "leads", "employees", "team_members"] as const;
+    for (const table of tables) {
+      await supabase.from(table).delete().eq("organization_id", studioId);
+    }
+    setResetting(false);
+    setConfirmText("");
+    toast.success(`${studioName} has been reset — all data erased`);
+    onUpdated();
+    fetchAll();
+  };
+
   const coreModules: AppModule[] = ["dashboard", "profile", "notifications"];
   const moduleGroups = ALL_MODULES.reduce((acc, mod) => {
     if (!acc[mod.group]) acc[mod.group] = [];
