@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
@@ -43,6 +44,7 @@ const teamSizes = [
 const coreModules = ["dashboard", "profile", "notifications"];
 
 export function CreateStudioWizard({ plans, onCreated }: CreateStudioWizardProps) {
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState<StepId>("info");
   const [loading, setLoading] = useState(false);
@@ -112,6 +114,24 @@ export function CreateStudioWizard({ plans, onCreated }: CreateStudioWizardProps
           { onConflict: "organization_id" }
         );
       }
+    }
+
+    // Audit log
+    if (user?.id) {
+      await supabase.from("audit_logs").insert({
+        action: "studio_created",
+        actor_id: user.id,
+        target_id: orgId || null,
+        target_type: "organization",
+        metadata: {
+          studio_name: form.studioName,
+          email: form.email,
+          city: form.city,
+          plan: plans.find(p => p.id === form.planId)?.name || null,
+          disabled_roles: disabledRoles,
+          restricted_modules: restrictedModules,
+        },
+      });
     }
 
     setLoading(false);
