@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
@@ -43,6 +44,7 @@ const teamSizes = [
 const coreModules = ["dashboard", "profile", "notifications"];
 
 export function CreateStudioWizard({ plans, onCreated }: CreateStudioWizardProps) {
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState<StepId>("info");
   const [loading, setLoading] = useState(false);
