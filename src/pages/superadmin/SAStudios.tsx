@@ -6,14 +6,19 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Building2, Users, Search, Eye, Settings2, CheckCircle2, XCircle, Clock,
   FolderKanban, IndianRupee, MapPin, Phone, Calendar, MoreVertical, LogIn,
-  Shield, Blocks, Grid3X3, List,
+  Shield, Blocks, Grid3X3, List, RotateCcw, Sparkles, Loader2,
 } from "lucide-react";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
@@ -47,7 +52,25 @@ export default function SAStudios() {
   const [selectedStudio, setSelectedStudio] = useState<{ id: string; name: string } | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
+  const [resetTarget, setResetTarget] = useState<{ id: string; name: string } | null>(null);
+  const [resetConfirmText, setResetConfirmText] = useState("");
+  const [resetting, setResetting] = useState(false);
+  const [resetSuccess, setResetSuccess] = useState(false);
+
   useEffect(() => { fetchData(); }, []);
+
+  const handleResetStudio = async () => {
+    if (!resetTarget || resetConfirmText !== "RESET") return;
+    setResetting(true);
+    const tables = ["deliverables", "attendance", "leaves", "invoices", "quotations", "albums", "projects", "clients", "leads", "employees", "team_members"] as const;
+    for (const table of tables) {
+      await supabase.from(table).delete().eq("organization_id", resetTarget.id);
+    }
+    setResetting(false);
+    setResetConfirmText("");
+    setResetSuccess(true);
+    fetchData();
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -234,6 +257,10 @@ export default function SAStudios() {
                           <DropdownMenuItem onClick={(e) => { e.stopPropagation(); localStorage.setItem("sa_impersonate_org", org.id); window.open("/", "_blank"); toast.info(`Opening ${org.name} in new tab`); }}>
                             <LogIn className="h-4 w-4 mr-2" /> Login as Studio
                           </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={(e) => { e.stopPropagation(); setResetTarget({ id: org.id, name: org.name }); }}>
+                            <RotateCcw className="h-4 w-4 mr-2" /> Reset Studio
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
@@ -325,6 +352,62 @@ export default function SAStudios() {
           onUpdated={fetchData}
         />
       )}
+
+      {/* Reset Studio Confirmation Dialog */}
+      <AlertDialog open={!!resetTarget && !resetSuccess} onOpenChange={(open) => { if (!open) { setResetTarget(null); setResetConfirmText(""); } }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+              <RotateCcw className="h-5 w-5" /> Reset Studio
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <p>This will permanently erase <strong className="text-foreground">{resetTarget?.name}</strong>'s data including clients, projects, leads, invoices, quotations, albums, employees, team members, attendance, and leaves.</p>
+              <p className="text-destructive font-medium">This action cannot be undone.</p>
+              <div className="pt-2">
+                <Label className="text-xs text-muted-foreground">Type <strong>RESET</strong> to confirm</Label>
+                <Input value={resetConfirmText} onChange={(e) => setResetConfirmText(e.target.value.toUpperCase())} placeholder="RESET" className="mt-1.5" />
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <Button variant="destructive" onClick={handleResetStudio} disabled={resetConfirmText !== "RESET" || resetting}>
+              {resetting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <RotateCcw className="h-4 w-4 mr-2" />}
+              {resetting ? "Resetting..." : "Reset All Data"}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Reset Success Dialog */}
+      <AlertDialog open={resetSuccess} onOpenChange={(open) => { if (!open) { setResetSuccess(false); setResetTarget(null); } }}>
+        <AlertDialogContent className="text-center">
+          <div className="flex flex-col items-center space-y-4 py-4">
+            <div className="relative">
+              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-emerald-500/20 via-primary/20 to-emerald-500/20 blur-2xl animate-pulse" />
+              <div className="relative h-20 w-20 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                <Sparkles className="h-10 w-10 text-white" />
+              </div>
+            </div>
+            <h2 className="text-xl font-bold bg-gradient-to-r from-emerald-400 via-primary to-emerald-400 bg-clip-text text-transparent">
+              Studio Reset Complete! ✨
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              All data for <span className="font-semibold text-foreground">{resetTarget?.name}</span> has been erased.
+            </p>
+            <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground w-full max-w-xs">
+              {["Clients", "Projects", "Leads", "Invoices", "Quotations", "Albums", "Employees", "Team", "Attendance"].map((item) => (
+                <div key={item} className="flex items-center gap-1">
+                  <CheckCircle2 className="h-3 w-3 text-emerald-500" /> {item}
+                </div>
+              ))}
+            </div>
+            <Button onClick={() => { setResetSuccess(false); setResetTarget(null); }} className="bg-gradient-to-r from-emerald-500 to-primary text-white px-8 mt-2">
+              Done
+            </Button>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
