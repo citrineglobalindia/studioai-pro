@@ -13,7 +13,8 @@ import {
 } from "@/components/ui/select";
 import {
   Plus, Loader2, CheckCircle2, Copy, Eye, EyeOff, ArrowRight, ArrowLeft,
-  Building2, CreditCard, Shield, Blocks, Sparkles,
+  Building2, CreditCard, Shield, Blocks, Sparkles, ClipboardList,
+  MapPin, Phone, Users,
 } from "lucide-react";
 import { toast } from "sonner";
 import { ALL_ROLES, ALL_MODULES } from "@/contexts/RoleContext";
@@ -27,6 +28,7 @@ const STEPS = [
   { id: "plan", label: "Select Plan", icon: CreditCard },
   { id: "roles", label: "Roles", icon: Shield },
   { id: "modules", label: "Modules", icon: Blocks },
+  { id: "review", label: "Review", icon: ClipboardList },
 ] as const;
 
 type StepId = typeof STEPS[number]["id"];
@@ -354,6 +356,93 @@ export function CreateStudioWizard({ plans, onCreated }: CreateStudioWizardProps
                   ))}
                 </div>
               )}
+
+              {currentStep === "review" && (() => {
+                const selectedPlan = plans.find((p) => p.id === form.planId);
+                const enabledRoles = ALL_ROLES.filter((r) => !disabledRoles.includes(r.value));
+                const enabledModules = ALL_MODULES.filter((m) => !restrictedModules.includes(m.value));
+                const disabledModules = ALL_MODULES.filter((m) => restrictedModules.includes(m.value));
+                const teamLabel = teamSizes.find((t) => t.value === form.teamSize)?.label || form.teamSize;
+
+                return (
+                  <div className="space-y-4">
+                    <p className="text-sm text-muted-foreground">Review everything before creating the studio.</p>
+
+                    {/* Studio Info */}
+                    <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                          <Building2 className="h-3.5 w-3.5" /> Studio Info
+                        </h4>
+                        <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => setCurrentStep("info")}>Edit</Button>
+                      </div>
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                        <div><span className="text-muted-foreground text-xs">Name</span><p className="font-medium">{form.studioName}</p></div>
+                        <div><span className="text-muted-foreground text-xs">Email</span><p className="font-medium font-mono text-xs">{form.email}</p></div>
+                        {form.city && <div className="flex items-center gap-1 text-muted-foreground"><MapPin className="h-3 w-3" /><span className="text-foreground text-xs">{form.city}</span></div>}
+                        {form.phone && <div className="flex items-center gap-1 text-muted-foreground"><Phone className="h-3 w-3" /><span className="text-foreground text-xs">{form.phone}</span></div>}
+                        <div className="flex items-center gap-1 text-muted-foreground"><Users className="h-3 w-3" /><span className="text-foreground text-xs">{teamLabel}</span></div>
+                      </div>
+                    </div>
+
+                    {/* Plan */}
+                    <div className="rounded-xl border border-border bg-muted/30 p-4">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                          <CreditCard className="h-3.5 w-3.5" /> Plan
+                        </h4>
+                        <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => setCurrentStep("plan")}>Edit</Button>
+                      </div>
+                      <p className="text-sm font-medium mt-1">{selectedPlan ? selectedPlan.name : <span className="text-muted-foreground italic">No plan selected</span>}</p>
+                    </div>
+
+                    {/* Roles */}
+                    <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                          <Shield className="h-3.5 w-3.5" /> Roles ({enabledRoles.length}/{ALL_ROLES.length} active)
+                        </h4>
+                        <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => setCurrentStep("roles")}>Edit</Button>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {ALL_ROLES.map((r) => {
+                          const enabled = !disabledRoles.includes(r.value);
+                          return (
+                            <Badge key={r.value} variant={enabled ? "default" : "outline"}
+                              className={cn("text-[10px]", !enabled && "opacity-40 line-through")}>
+                              {r.label}
+                            </Badge>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Modules */}
+                    <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                          <Blocks className="h-3.5 w-3.5" /> Modules ({enabledModules.length}/{ALL_MODULES.length} active)
+                        </h4>
+                        <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => setCurrentStep("modules")}>Edit</Button>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {ALL_MODULES.map((m) => {
+                          const enabled = !restrictedModules.includes(m.value);
+                          return (
+                            <Badge key={m.value} variant={enabled ? "secondary" : "outline"}
+                              className={cn("text-[10px]", !enabled && "opacity-40 line-through")}>
+                              {m.label}
+                            </Badge>
+                          );
+                        })}
+                      </div>
+                      {disabledModules.length > 0 && (
+                        <p className="text-[10px] text-muted-foreground">{disabledModules.length} module(s) will be restricted</p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
 
             {/* Footer */}
