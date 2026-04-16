@@ -80,7 +80,7 @@ export default function SAStudios() {
   const handleDeleteStudio = async () => {
     if (!deleteTarget || deleteConfirmText !== "DELETE") return;
     setDeleting(true);
-    const dataTables = ["deliverables", "attendance", "leaves", "invoices", "quotations", "albums", "projects", "clients", "leads", "employees", "team_members", "expenses"] as const;
+    const dataTables = ["deliverables", "attendance", "leaves", "invoices", "quotations", "albums", "projects", "clients", "leads", "employees", "team_members"] as const;
     for (const table of dataTables) {
       await supabase.from(table).delete().eq("organization_id", deleteTarget.id);
     }
