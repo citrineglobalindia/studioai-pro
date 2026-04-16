@@ -147,7 +147,7 @@ export default function EventsPage() {
 
   const handleAddEvent = () => {
     if (!newEvent.name || !newEvent.date || !newEvent.venue) { toast.error("Name, date and venue are required"); return; }
-    const client = sampleClients.find(c => c.id === newEvent.clientId);
+    const client = dbClients.find(c => c.id === newEvent.clientId);
     const event: EventWithClient = { id: `ev-${Date.now()}`, name: newEvent.name, date: newEvent.date, venue: newEvent.venue, type: newEvent.type, status: "upcoming", notes: newEvent.notes || undefined, clientName: client?.name || "Studio Event", clientId: newEvent.clientId || "", assignedTeam: [] };
     setExtraEvents(prev => [...prev, event]);
     setAddEventOpen(false);
@@ -397,7 +397,7 @@ export default function EventsPage() {
         <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
           <SheetHeader><SheetTitle className="flex items-center gap-2"><Plus className="h-4 w-4 text-primary" /> Add New Event</SheetTitle></SheetHeader>
           <div className="mt-6 space-y-4">
-            <div className="space-y-1.5"><Label className="text-xs font-medium">Client</Label><Select value={newEvent.clientId} onValueChange={(v) => setNewEvent(p => ({ ...p, clientId: v }))}><SelectTrigger><SelectValue placeholder="Select client" /></SelectTrigger><SelectContent>{sampleClients.map((c) => (<SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>))}</SelectContent></Select></div>
+            <div className="space-y-1.5"><Label className="text-xs font-medium">Client</Label><Select value={newEvent.clientId} onValueChange={(v) => setNewEvent(p => ({ ...p, clientId: v }))}><SelectTrigger><SelectValue placeholder="Select client" /></SelectTrigger><SelectContent>{dbClients.map((c) => (<SelectItem key={c.id} value={c.id}>{c.partner_name ? `${c.name} & ${c.partner_name}` : c.name}</SelectItem>))}</SelectContent></Select></div>
             <div className="space-y-1.5">
               <Label className="text-xs font-medium">Event Type</Label>
               <div className="grid grid-cols-4 gap-2">
