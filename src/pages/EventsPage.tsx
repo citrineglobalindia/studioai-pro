@@ -14,8 +14,20 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
-import { sampleClients, type ClientEvent } from "@/data/clients-data";
+import { useClients } from "@/hooks/useClients";
+import { useProjects } from "@/hooks/useProjects";
+import { useTeamMembers } from "@/hooks/useTeamMembers";
 import { cn } from "@/lib/utils";
+
+interface ClientEvent {
+  id: string;
+  name: string;
+  date: string;
+  venue: string;
+  type: string;
+  status: "upcoming" | "completed" | "in-progress";
+  notes?: string;
+}
 
 interface EventWithClient extends ClientEvent {
   clientName: string;
