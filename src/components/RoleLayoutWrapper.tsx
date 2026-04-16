@@ -21,6 +21,7 @@ const routeModuleMap: Array<{ prefix: string; module: AppModule }> = [
   { prefix: "/albums", module: "projects" },
   { prefix: "/live-clients", module: "projects" },
   { prefix: "/events", module: "calendar" },
+  { prefix: "/process-planner", module: "projects" },
   { prefix: "/tasks", module: "tasks" },
   { prefix: "/calendar", module: "calendar" },
   { prefix: "/projects", module: "projects" },

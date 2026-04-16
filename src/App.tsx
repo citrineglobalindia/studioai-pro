@@ -48,6 +48,7 @@ import AccountsPage from "./pages/AccountsPage";
 import LiveClientsPage from "./pages/LiveClientsPage";
 import ProfilePage from "./pages/ProfilePage";
 import AccessControlPage from "./pages/AccessControlPage";
+import ProcessPlannerPage from "./pages/ProcessPlannerPage";
 import SuperAdminPage from "./pages/SuperAdminPage";
 
 // Super Admin sub-pages
@@ -117,6 +118,7 @@ function ProtectedRoutes() {
         <Route path="/accounts" element={<AccountsPage />} />
         <Route path="/live-clients" element={<LiveClientsPage />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/process-planner" element={<ProcessPlannerPage />} />
       </Route>
       <Route path="*" element={<NotFound />} />
     </Routes>
