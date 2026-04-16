@@ -50,93 +50,9 @@ interface ExternalConversation {
   messages: { from: "client" | "studio"; text: string; time: string; read: boolean }[];
 }
 
-const externalConversations: ExternalConversation[] = [
-  {
-    id: "conv1", client: "Priya Sharma", channel: "whatsapp", lastMessage: "Can we add a drone shot at the sangeet?", time: "10 min ago", unread: 2, status: "active",
-    messages: [
-      { from: "client", text: "Hi! I had a quick question about the sangeet coverage.", time: "11:30 AM", read: true },
-      { from: "studio", text: "Sure Priya, what would you like to know?", time: "11:32 AM", read: true },
-      { from: "client", text: "Can we add a drone shot at the sangeet?", time: "11:45 AM", read: false },
-      { from: "client", text: "Also, what's the extra cost for that?", time: "11:45 AM", read: false },
-    ],
-  },
-  {
-    id: "conv2", client: "Ananya Desai", channel: "email", lastMessage: "Re: Jaipur wedding timeline confirmed", time: "2 hrs ago", unread: 0, status: "resolved",
-    messages: [
-      { from: "studio", text: "Hi Ananya, please find the updated timeline attached.", time: "9:00 AM", read: true },
-      { from: "client", text: "Looks great! We're confirmed on all dates.", time: "10:15 AM", read: true },
-    ],
-  },
-  {
-    id: "conv3", client: "Sneha Kapoor", channel: "instagram", lastMessage: "Love your recent work! Can we discuss packages?", time: "5 hrs ago", unread: 1, status: "active",
-    messages: [
-      { from: "client", text: "Love your recent work! Can we discuss packages?", time: "7:30 AM", read: false },
-    ],
-  },
-  {
-    id: "conv4", client: "Meera Iyer", channel: "whatsapp", lastMessage: "Photos look amazing! Thank you 🙏", time: "1 day ago", unread: 0, status: "resolved",
-    messages: [
-      { from: "studio", text: "Hi Meera, your Haldi photos are ready. Check the gallery link.", time: "Yesterday", read: true },
-      { from: "client", text: "Photos look amazing! Thank you 🙏", time: "Yesterday", read: true },
-    ],
-  },
-  {
-    id: "conv5", client: "Ritu Singh", channel: "call", lastMessage: "Missed call - callback required", time: "3 hrs ago", unread: 1, status: "active",
-    messages: [
-      { from: "client", text: "Missed call - callback required", time: "9:00 AM", read: false },
-    ],
-  },
-];
+const externalConversations: ExternalConversation[] = [];
 
-const initialInAppConversations: InAppConversation[] = [
-  {
-    id: "ia1", name: "Amit Kumar", avatar: "AK", type: "direct",
-    lastMessage: "I'll share the edited photos by evening", time: "2 min ago", unread: 3, online: true, typing: true,
-    messages: [
-      { id: "m1", from: "other", senderName: "Amit Kumar", text: "Hey, the Sharma wedding edits are almost done", time: "2:30 PM", read: true },
-      { id: "m2", from: "me", senderName: "You", text: "Great! Client is asking for a preview", time: "2:32 PM", read: true },
-      { id: "m3", from: "other", senderName: "Amit Kumar", text: "I'll share the edited photos by evening", time: "2:35 PM", read: false },
-      { id: "m4", from: "other", senderName: "Amit Kumar", text: "Also, should we include the candid shots from the mehendi?", time: "2:35 PM", read: false },
-      { id: "m5", from: "other", senderName: "Amit Kumar", text: "The lighting was really good there", time: "2:36 PM", read: false },
-    ],
-  },
-  {
-    id: "ia2", name: "Creative Team", avatar: "CT", type: "group", members: ["Amit Kumar", "Neha Patel", "Raj Verma", "You"],
-    lastMessage: "Neha: New moodboard uploaded for Kapoor wedding", time: "15 min ago", unread: 5, online: true,
-    messages: [
-      { id: "m1", from: "other", senderName: "Neha Patel", text: "I've uploaded the moodboard for the Kapoor wedding 🎨", time: "1:00 PM", read: true },
-      { id: "m2", from: "other", senderName: "Raj Verma", text: "Looks stunning! Love the color palette", time: "1:05 PM", read: true },
-      { id: "m3", from: "me", senderName: "You", text: "Perfect match with the venue. Let's finalize this.", time: "1:10 PM", read: true },
-      { id: "m4", from: "other", senderName: "Neha Patel", text: "New moodboard uploaded for Kapoor wedding", time: "1:30 PM", read: false },
-      { id: "m5", from: "other", senderName: "Amit Kumar", text: "I can start with the pre-wedding shoot prep based on this", time: "1:32 PM", read: false },
-    ],
-  },
-  {
-    id: "ia3", name: "#announcements", avatar: "📢", type: "channel",
-    lastMessage: "Holiday schedule for Diwali week updated", time: "1 hr ago", unread: 1,
-    messages: [
-      { id: "m1", from: "other", senderName: "Admin", text: "📋 Holiday schedule for Diwali week has been updated. Please check the calendar.", time: "12:00 PM", read: false, type: "system" },
-    ],
-  },
-  {
-    id: "ia4", name: "Neha Patel", avatar: "NP", type: "direct",
-    lastMessage: "The album designs are ready for review", time: "30 min ago", unread: 0, online: true,
-    messages: [
-      { id: "m1", from: "other", senderName: "Neha Patel", text: "Hi! The album designs for the Iyer wedding are ready", time: "11:00 AM", read: true },
-      { id: "m2", from: "me", senderName: "You", text: "Awesome, I'll review them right away", time: "11:05 AM", read: true },
-      { id: "m3", from: "other", senderName: "Neha Patel", text: "The album designs are ready for review", time: "11:30 AM", read: true },
-    ],
-  },
-  {
-    id: "ia5", name: "Raj Verma", avatar: "RV", type: "direct",
-    lastMessage: "Equipment check done for tomorrow's shoot", time: "2 hrs ago", unread: 0, online: false,
-    messages: [
-      { id: "m1", from: "other", senderName: "Raj Verma", text: "All equipment checked and packed for the Gupta wedding tomorrow", time: "10:00 AM", read: true },
-      { id: "m2", from: "me", senderName: "You", text: "Perfect. Don't forget the extra batteries", time: "10:05 AM", read: true },
-      { id: "m3", from: "other", senderName: "Raj Verma", text: "Equipment check done for tomorrow's shoot", time: "10:10 AM", read: true },
-    ],
-  },
-];
+const initialInAppConversations: InAppConversation[] = [];
 
 const channelEmoji: Record<string, string> = {
   whatsapp: "💬",
