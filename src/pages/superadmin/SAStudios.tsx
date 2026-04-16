@@ -372,6 +372,7 @@ export default function SAStudios() {
             const status = getStatus(org.id);
             const sub = getSubForOrg(org.id);
             const orgStats = analytics[org.id] || { clients: 0, projects: 0, revenue: 0, members: 0 };
+            const rest = restrictions[org.id];
             return (
               <div key={org.id}
                 className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_auto] gap-2 px-4 py-3 border-t border-border hover:bg-muted/30 cursor-pointer items-center transition-colors"
