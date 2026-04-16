@@ -14,8 +14,20 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
-import { sampleClients, type ClientEvent } from "@/data/clients-data";
+import { useClients } from "@/hooks/useClients";
+import { useProjects } from "@/hooks/useProjects";
+import { useTeamMembers } from "@/hooks/useTeamMembers";
 import { cn } from "@/lib/utils";
+
+interface ClientEvent {
+  id: string;
+  name: string;
+  date: string;
+  venue: string;
+  type: string;
+  status: "upcoming" | "completed" | "in-progress";
+  notes?: string;
+}
 
 interface EventWithClient extends ClientEvent {
   clientName: string;
@@ -66,6 +78,8 @@ const AnimatedNumber = ({ value, delay = 0 }: { value: number; delay?: number })
 };
 
 export default function EventsPage() {
+  const { clients: dbClients } = useClients();
+  const { projects: dbProjects } = useProjects();
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
   const [activeTab, setActiveTab] = useState("all");
@@ -80,11 +94,27 @@ export default function EventsPage() {
   const [extraEvents, setExtraEvents] = useState<EventWithClient[]>([]);
 
   const allEvents: EventWithClient[] = useMemo(() => {
-    const base = sampleClients.flatMap(client =>
-      client.events.map(event => ({ ...event, clientName: client.name, clientId: client.id, assignedTeam: (assignments[event.id] || []).map(tid => teamMembers.find(t => t.id === tid)!).filter(Boolean) }))
-    );
+    // Build events from DB projects that have event dates
+    const base: EventWithClient[] = dbProjects
+      .filter(p => p.event_date)
+      .map(p => {
+        const client = dbClients.find(c => c.id === p.client_id);
+        const eventDate = new Date(p.event_date!);
+        const isUpcoming = eventDate >= new Date();
+        return {
+          id: p.id,
+          name: p.project_name,
+          date: p.event_date!,
+          venue: p.venue || "TBD",
+          type: (p.event_type || "wedding").toLowerCase(),
+          status: (p.status === "completed" || p.status === "delivered" ? "completed" : isUpcoming ? "upcoming" : "in-progress") as "upcoming" | "completed" | "in-progress",
+          clientName: client ? (client.partner_name ? `${client.name} & ${client.partner_name}` : client.name) : p.project_name,
+          clientId: p.client_id || "",
+          assignedTeam: (assignments[p.id] || []).map(tid => teamMembers.find(t => t.id === tid)!).filter(Boolean),
+        };
+      });
     return [...base, ...extraEvents].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  }, [assignments, extraEvents]);
+  }, [dbProjects, dbClients, assignments, extraEvents]);
 
   const filteredEvents = useMemo(() => {
     return allEvents.filter(event => {
@@ -117,7 +147,7 @@ export default function EventsPage() {
 
   const handleAddEvent = () => {
     if (!newEvent.name || !newEvent.date || !newEvent.venue) { toast.error("Name, date and venue are required"); return; }
-    const client = sampleClients.find(c => c.id === newEvent.clientId);
+    const client = dbClients.find(c => c.id === newEvent.clientId);
     const event: EventWithClient = { id: `ev-${Date.now()}`, name: newEvent.name, date: newEvent.date, venue: newEvent.venue, type: newEvent.type, status: "upcoming", notes: newEvent.notes || undefined, clientName: client?.name || "Studio Event", clientId: newEvent.clientId || "", assignedTeam: [] };
     setExtraEvents(prev => [...prev, event]);
     setAddEventOpen(false);
@@ -367,7 +397,7 @@ export default function EventsPage() {
         <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
           <SheetHeader><SheetTitle className="flex items-center gap-2"><Plus className="h-4 w-4 text-primary" /> Add New Event</SheetTitle></SheetHeader>
           <div className="mt-6 space-y-4">
-            <div className="space-y-1.5"><Label className="text-xs font-medium">Client</Label><Select value={newEvent.clientId} onValueChange={(v) => setNewEvent(p => ({ ...p, clientId: v }))}><SelectTrigger><SelectValue placeholder="Select client" /></SelectTrigger><SelectContent>{sampleClients.map((c) => (<SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>))}</SelectContent></Select></div>
+            <div className="space-y-1.5"><Label className="text-xs font-medium">Client</Label><Select value={newEvent.clientId} onValueChange={(v) => setNewEvent(p => ({ ...p, clientId: v }))}><SelectTrigger><SelectValue placeholder="Select client" /></SelectTrigger><SelectContent>{dbClients.map((c) => (<SelectItem key={c.id} value={c.id}>{c.partner_name ? `${c.name} & ${c.partner_name}` : c.name}</SelectItem>))}</SelectContent></Select></div>
             <div className="space-y-1.5">
               <Label className="text-xs font-medium">Event Type</Label>
               <div className="grid grid-cols-4 gap-2">
