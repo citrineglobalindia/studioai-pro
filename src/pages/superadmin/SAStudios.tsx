@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import {
   Building2, Users, Search, Eye, Settings2, CheckCircle2, XCircle, Clock,
   FolderKanban, IndianRupee, MapPin, Phone, Calendar, MoreVertical, LogIn,
-  Shield, Blocks, Grid3X3, List, RotateCcw, Sparkles, Loader2,
+  Shield, Blocks, Grid3X3, List, RotateCcw, Sparkles, Loader2, Trash2,
 } from "lucide-react";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
@@ -57,6 +57,11 @@ export default function SAStudios() {
   const [resetting, setResetting] = useState(false);
   const [resetSuccess, setResetSuccess] = useState(false);
 
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [deleteSuccess, setDeleteSuccess] = useState(false);
+
   useEffect(() => { fetchData(); }, []);
 
   const handleResetStudio = async () => {
@@ -69,6 +74,25 @@ export default function SAStudios() {
     setResetting(false);
     setResetConfirmText("");
     setResetSuccess(true);
+    fetchData();
+  };
+
+  const handleDeleteStudio = async () => {
+    if (!deleteTarget || deleteConfirmText !== "DELETE") return;
+    setDeleting(true);
+    const dataTables = ["deliverables", "attendance", "leaves", "invoices", "quotations", "albums", "projects", "clients", "leads", "employees", "team_members"] as const;
+    for (const table of dataTables) {
+      await supabase.from(table).delete().eq("organization_id", deleteTarget.id);
+    }
+    // Delete restrictions, subscriptions, members, then org
+    await supabase.from("studio_module_restrictions").delete().eq("organization_id", deleteTarget.id);
+    await supabase.from("studio_role_restrictions").delete().eq("organization_id", deleteTarget.id);
+    await supabase.from("subscriptions").delete().eq("organization_id", deleteTarget.id);
+    await supabase.from("organization_members").delete().eq("organization_id", deleteTarget.id);
+    await supabase.from("organizations").delete().eq("id", deleteTarget.id);
+    setDeleting(false);
+    setDeleteConfirmText("");
+    setDeleteSuccess(true);
     fetchData();
   };
 
@@ -261,6 +285,9 @@ export default function SAStudios() {
                           <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={(e) => { e.stopPropagation(); setResetTarget({ id: org.id, name: org.name }); }}>
                             <RotateCcw className="h-4 w-4 mr-2" /> Reset Studio
                           </DropdownMenuItem>
+                          <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={(e) => { e.stopPropagation(); setDeleteTarget({ id: org.id, name: org.name }); }}>
+                            <Trash2 className="h-4 w-4 mr-2" /> Delete Studio
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
@@ -403,6 +430,55 @@ export default function SAStudios() {
               ))}
             </div>
             <Button onClick={() => { setResetSuccess(false); setResetTarget(null); }} className="bg-gradient-to-r from-emerald-500 to-primary text-white px-8 mt-2">
+              Done
+            </Button>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Studio Confirmation Dialog */}
+      <AlertDialog open={!!deleteTarget && !deleteSuccess} onOpenChange={(open) => { if (!open) { setDeleteTarget(null); setDeleteConfirmText(""); } }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+              <Trash2 className="h-5 w-5" /> Delete Studio Permanently
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <p>This will <strong className="text-destructive">permanently delete</strong> the studio <strong className="text-foreground">{deleteTarget?.name}</strong> and all its data including clients, projects, leads, invoices, quotations, albums, employees, team members, subscriptions, and settings.</p>
+              <p className="text-destructive font-medium">⚠️ This action is irreversible. The studio cannot be recovered.</p>
+              <div className="pt-2">
+                <Label className="text-xs text-muted-foreground">Type <strong>DELETE</strong> to confirm</Label>
+                <Input value={deleteConfirmText} onChange={(e) => setDeleteConfirmText(e.target.value.toUpperCase())} placeholder="DELETE" className="mt-1.5" />
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <Button variant="destructive" onClick={handleDeleteStudio} disabled={deleteConfirmText !== "DELETE" || deleting}>
+              {deleting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Trash2 className="h-4 w-4 mr-2" />}
+              {deleting ? "Deleting..." : "Delete Studio Forever"}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Success Dialog */}
+      <AlertDialog open={deleteSuccess} onOpenChange={(open) => { if (!open) { setDeleteSuccess(false); setDeleteTarget(null); } }}>
+        <AlertDialogContent className="text-center">
+          <div className="flex flex-col items-center space-y-4 py-4">
+            <div className="relative">
+              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-red-500/20 via-primary/20 to-red-500/20 blur-2xl animate-pulse" />
+              <div className="relative h-20 w-20 rounded-full bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center shadow-lg shadow-red-500/30">
+                <Trash2 className="h-10 w-10 text-white" />
+              </div>
+            </div>
+            <h2 className="text-xl font-bold bg-gradient-to-r from-red-400 via-primary to-red-400 bg-clip-text text-transparent">
+              Studio Deleted Successfully
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              <span className="font-semibold text-foreground">{deleteTarget?.name}</span> has been permanently removed from the platform.
+            </p>
+            <Button onClick={() => { setDeleteSuccess(false); setDeleteTarget(null); }} className="bg-gradient-to-r from-primary to-primary/80 text-white px-8 mt-2">
               Done
             </Button>
           </div>
