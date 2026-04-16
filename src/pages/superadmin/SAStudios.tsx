@@ -46,6 +46,7 @@ export default function SAStudios() {
   const [subscriptions, setSubscriptions] = useState<any[]>([]);
   const [plans, setPlans] = useState<Record<string, string>>({});
   const [analytics, setAnalytics] = useState<Record<string, OrgAnalytics>>({});
+  const [restrictions, setRestrictions] = useState<Record<string, { disabledRoles: string[]; restrictedModules: string[] }>>({});
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "active" | "trial" | "inactive">("all");
   const [loading, setLoading] = useState(true);
@@ -98,7 +99,7 @@ export default function SAStudios() {
 
   const fetchData = async () => {
     setLoading(true);
-    const [orgsRes, subsRes, membersRes, plansRes, clientsRes, projectsRes, invoicesRes] = await Promise.all([
+    const [orgsRes, subsRes, membersRes, plansRes, clientsRes, projectsRes, invoicesRes, roleRestRes, modRestRes] = await Promise.all([
       supabase.from("organizations").select("*").order("created_at", { ascending: false }),
       supabase.from("subscriptions").select("id, organization_id, status, trial_ends_at, plan_id"),
       supabase.from("organization_members").select("organization_id, user_id"),
@@ -106,6 +107,8 @@ export default function SAStudios() {
       supabase.from("clients").select("id, organization_id"),
       supabase.from("projects").select("id, organization_id"),
       supabase.from("invoices").select("id, organization_id, amount_paid"),
+      supabase.from("studio_role_restrictions").select("organization_id, disabled_roles"),
+      supabase.from("studio_module_restrictions").select("organization_id, restricted_modules"),
     ]);
 
     const orgsData = (orgsRes.data as TenantOrg[]) || [];
@@ -131,6 +134,19 @@ export default function SAStudios() {
       };
     });
     setAnalytics(analyticsMap);
+
+    // Build restrictions map
+    const restMap: Record<string, { disabledRoles: string[]; restrictedModules: string[] }> = {};
+    (roleRestRes.data || []).forEach((r: any) => {
+      if (!restMap[r.organization_id]) restMap[r.organization_id] = { disabledRoles: [], restrictedModules: [] };
+      restMap[r.organization_id].disabledRoles = r.disabled_roles || [];
+    });
+    (modRestRes.data || []).forEach((m: any) => {
+      if (!restMap[m.organization_id]) restMap[m.organization_id] = { disabledRoles: [], restrictedModules: [] };
+      restMap[m.organization_id].restrictedModules = m.restricted_modules || [];
+    });
+    setRestrictions(restMap);
+
     setLoading(false);
   };
 
@@ -250,6 +266,7 @@ export default function SAStudios() {
             const status = getStatus(org.id);
             const sub = getSubForOrg(org.id);
             const orgStats = analytics[org.id] || { clients: 0, projects: 0, revenue: 0, members: 0 };
+            const rest = restrictions[org.id];
 
             return (
               <Card key={org.id} className="group hover:border-primary/40 transition-all hover:shadow-lg cursor-pointer"
@@ -324,6 +341,22 @@ export default function SAStudios() {
                       <Badge variant="secondary" className="text-xs">{plans[sub.plan_id]}</Badge>
                     </div>
                   )}
+
+                  {/* Role & Module Restrictions */}
+                  {rest && (rest.disabledRoles.length > 0 || rest.restrictedModules.length > 0) && (
+                    <div className="flex flex-wrap gap-1.5 pt-2 border-t border-border">
+                      {rest.disabledRoles.length > 0 && (
+                        <Badge variant="outline" className="text-[10px] border-amber-500/30 text-amber-400 bg-amber-500/5">
+                          <Shield className="h-3 w-3 mr-1" />{rest.disabledRoles.length} roles disabled
+                        </Badge>
+                      )}
+                      {rest.restrictedModules.length > 0 && (
+                        <Badge variant="outline" className="text-[10px] border-amber-500/30 text-amber-400 bg-amber-500/5">
+                          <Blocks className="h-3 w-3 mr-1" />{rest.restrictedModules.length} modules restricted
+                        </Badge>
+                      )}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             );
@@ -339,6 +372,7 @@ export default function SAStudios() {
             const status = getStatus(org.id);
             const sub = getSubForOrg(org.id);
             const orgStats = analytics[org.id] || { clients: 0, projects: 0, revenue: 0, members: 0 };
+            const rest = restrictions[org.id];
             return (
               <div key={org.id}
                 className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_auto] gap-2 px-4 py-3 border-t border-border hover:bg-muted/30 cursor-pointer items-center transition-colors"
@@ -350,7 +384,19 @@ export default function SAStudios() {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-foreground">{org.name}</p>
-                    <p className="text-[10px] text-muted-foreground">{org.city || org.slug}</p>
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-[10px] text-muted-foreground">{org.city || org.slug}</p>
+                      {rest && rest.disabledRoles.length > 0 && (
+                        <Badge variant="outline" className="text-[8px] px-1 py-0 h-3.5 border-amber-500/30 text-amber-400">
+                          {rest.disabledRoles.length}R
+                        </Badge>
+                      )}
+                      {rest && rest.restrictedModules.length > 0 && (
+                        <Badge variant="outline" className="text-[8px] px-1 py-0 h-3.5 border-amber-500/30 text-amber-400">
+                          {rest.restrictedModules.length}M
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <div>{statusBadge(status)}</div>
