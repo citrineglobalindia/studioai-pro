@@ -94,6 +94,7 @@ type ViewMode = "month" | "week" | "day";
 
 const CalendarPage = () => {
   const navigate = useNavigate();
+  const { clients: dbClients } = useClients();
   const today = new Date();
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
