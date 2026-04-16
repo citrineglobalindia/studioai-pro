@@ -108,13 +108,26 @@ Deno.serve(async (req) => {
       });
     }
 
-    // 4. Add owner as org member
+    // 4. Create owner profile and add owner as org member
+    const { error: profileError } = await supabaseAdmin
+      .from("profiles")
+      .upsert({
+        user_id: userId,
+        display_name: studioName,
+        role: "admin",
+      });
+
+    if (profileError) {
+      console.error("Profile upsert error:", profileError);
+    }
+
     const { error: memberError } = await supabaseAdmin
       .from("organization_members")
       .insert({
         organization_id: org.id,
         user_id: userId,
         role: "owner",
+        invited_email: email,
       });
 
     if (memberError) {

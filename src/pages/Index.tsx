@@ -178,7 +178,7 @@ const Index = () => {
             </div>
             <div className="flex items-center gap-2">
               <h1 className="text-2xl sm:text-3xl font-display font-bold text-foreground">
-                Good Morning, Amit
+                Good Morning{organization?.name ? `, ${organization.name}` : ""}
               </h1>
               <motion.span
                 animate={{ rotate: [0, 15, -15, 0] }}

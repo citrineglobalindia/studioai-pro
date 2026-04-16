@@ -7,10 +7,25 @@ import { RoleSwitcher } from "@/components/RoleSwitcher";
 import { FloatingAIButton } from "@/components/FloatingAIButton";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useOrg } from "@/contexts/OrgContext";
+
+const getInitials = (value: string) => {
+  const initials = value
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join("");
+
+  return initials || "SU";
+};
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const { signOut } = useAuth();
+  const { organization } = useOrg();
+  const profileInitials = getInitials(organization?.name || "Studio User");
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
@@ -35,7 +50,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-primary" />
               </Button>
               <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground" onClick={() => navigate("/profile")}>
-                <span className="h-7 w-7 rounded-full bg-primary/20 flex items-center justify-center text-xs font-medium text-primary">AS</span>
+                <span className="h-7 w-7 rounded-full bg-primary/20 flex items-center justify-center text-xs font-medium text-primary">{profileInitials}</span>
               </Button>
               <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive hover:bg-destructive/10" onClick={async () => { await signOut(); navigate("/auth"); }}>
                 <LogOut className="h-4 w-4" />

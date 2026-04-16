@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { SubscriptionManager } from "@/components/SubscriptionManager";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,17 +8,44 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
+import { useOrg } from "@/contexts/OrgContext";
+import { useRole } from "@/contexts/RoleContext";
+import { supabase } from "@/integrations/supabase/client";
 import {
-  Settings, User, Building2, Bell, Shield, Palette, Globe, CreditCard,
-  Upload, Image, Droplets, FileText, Download, Database, Key, Link2,
+  Settings, Building2, Bell, Shield, Palette, Globe, CreditCard,
+  Upload, Image, Droplets, FileText, Download, Database, Key,
   MessageSquare, Mail, Smartphone, Zap, CheckCircle2, AlertTriangle,
   Copy, ExternalLink, RefreshCw, Trash2, Save, Eye, EyeOff,
 } from "lucide-react";
 
+const formatRoleLabel = (role: string) => {
+  if (!role) return "Admin";
+  if (role === "hr") return "HR";
+  return role
+    .split("-")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+};
+
+const getInitials = (value: string) => {
+  const initials = value
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join("");
+
+  return initials || "SU";
+};
+
 export default function SettingsPage() {
+  const { user } = useAuth();
+  const { organization } = useOrg();
+  const { currentRole } = useRole();
+  const [ownerEmail, setOwnerEmail] = useState("");
   const [notifications, setNotifications] = useState({
     emailLeads: true, whatsappLeads: true, paymentReminders: true,
     shootReminders: true, editUpdates: false, marketingReports: true,
@@ -31,10 +58,53 @@ export default function SettingsPage() {
   });
 
   const [showApiKey, setShowApiKey] = useState(false);
+  const isImpersonatingStudio = typeof window !== "undefined" && !!localStorage.getItem("sa_impersonate_org");
+
+  useEffect(() => {
+    let active = true;
+
+    const fetchOwnerEmail = async () => {
+      if (!organization?.id) {
+        if (active) setOwnerEmail("");
+        return;
+      }
+
+      const { data } = await supabase
+        .from("organization_members")
+        .select("invited_email")
+        .eq("organization_id", organization.id)
+        .eq("role", "owner")
+        .maybeSingle();
+
+      if (active) {
+        setOwnerEmail(data?.invited_email ?? "");
+      }
+    };
+
+    fetchOwnerEmail();
+
+    return () => {
+      active = false;
+    };
+  }, [organization?.id]);
+
+  const studioName = organization?.name ?? "";
+  const studioPhone = organization?.phone ?? "";
+  const studioWebsite = organization?.website ?? "";
+  const studioCity = organization?.city ?? "";
+  const studioPrimaryColor = organization?.primary_color ?? "";
+  const studioEmail = ownerEmail || (!isImpersonatingStudio ? user?.email ?? "" : "");
+  const displayName = isImpersonatingStudio
+    ? (studioName || "Studio User")
+    : ((user?.user_metadata?.full_name as string | undefined) || user?.email?.split("@")[0] || studioName || "Studio User");
+  const displayInitials = getInitials(displayName);
+  const roleLabel = formatRoleLabel(currentRole);
+  const invoiceFooter = studioName
+    ? `Thank you for choosing ${studioName}. Payments are non-refundable.`
+    : "";
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
-      {/* Header */}
       <div className="flex items-center gap-3">
         <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center ring-1 ring-primary/20">
           <Settings className="h-5 w-5 text-primary" />
@@ -54,14 +124,13 @@ export default function SettingsPage() {
             { value: "notifications", icon: Bell, label: "Notifications" },
             { value: "billing", icon: CreditCard, label: "Billing" },
             { value: "advanced", icon: Shield, label: "Advanced" },
-          ].map(tab => (
+          ].map((tab) => (
             <TabsTrigger key={tab.value} value={tab.value} className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-3 sm:px-4 py-2.5 gap-1.5 text-xs sm:text-sm">
               <tab.icon className="h-3.5 w-3.5" />{tab.label}
             </TabsTrigger>
           ))}
         </TabsList>
 
-        {/* ═══ STUDIO ═══ */}
         <TabsContent value="studio" className="space-y-6">
           <div className="rounded-xl bg-card border border-border p-6 space-y-5">
             <div className="flex items-center justify-between">
@@ -69,43 +138,41 @@ export default function SettingsPage() {
               <Badge variant="outline" className="text-[10px] bg-emerald-500/10 text-emerald-500 border-emerald-500/20"><CheckCircle2 className="h-3 w-3 mr-1" /> Verified</Badge>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2"><Label>Studio Name</Label><Input defaultValue="Amit Studio Photography" /></div>
-              <div className="space-y-2"><Label>Phone</Label><Input defaultValue="+91 98765 43210" /></div>
-              <div className="space-y-2"><Label>Email</Label><Input defaultValue="hello@amitstudio.com" /></div>
-              <div className="space-y-2"><Label>Website</Label><Input defaultValue="www.amitstudio.com" /></div>
-              <div className="space-y-2 sm:col-span-2"><Label>Address</Label><Textarea defaultValue="42, Defence Colony, New Delhi 110024" rows={2} /></div>
-              <div className="space-y-2"><Label>City</Label><Input defaultValue="New Delhi" /></div>
-              <div className="space-y-2"><Label>GST Number</Label><Input defaultValue="07AAECA1234F1Z5" /></div>
+              <div className="space-y-2"><Label>Studio Name</Label><Input value={studioName} readOnly placeholder="Not set" /></div>
+              <div className="space-y-2"><Label>Phone</Label><Input value={studioPhone} readOnly placeholder="Not set" /></div>
+              <div className="space-y-2"><Label>Email</Label><Input value={studioEmail} readOnly placeholder="Not set" /></div>
+              <div className="space-y-2"><Label>Website</Label><Input value={studioWebsite} readOnly placeholder="Not set" /></div>
+              <div className="space-y-2 sm:col-span-2"><Label>Address</Label><Textarea value="" readOnly placeholder="Not set" rows={2} /></div>
+              <div className="space-y-2"><Label>City</Label><Input value={studioCity} readOnly placeholder="Not set" /></div>
+              <div className="space-y-2"><Label>GST Number</Label><Input value="" readOnly placeholder="Not set" /></div>
             </div>
             <div className="flex items-center gap-2 pt-2">
               <Button className="gap-2"><Save className="h-3.5 w-3.5" /> Save Changes</Button>
             </div>
           </div>
 
-          {/* Profile */}
           <div className="rounded-xl bg-card border border-border p-6 space-y-5">
             <h2 className="font-display font-semibold text-foreground">Your Profile</h2>
             <div className="flex items-center gap-4 mb-4">
               <div className="relative">
-                <div className="h-16 w-16 rounded-2xl bg-primary/20 flex items-center justify-center text-xl font-bold text-primary">AS</div>
+                <div className="h-16 w-16 rounded-2xl bg-primary/20 flex items-center justify-center text-xl font-bold text-primary">{displayInitials}</div>
                 <button className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-primary flex items-center justify-center border-2 border-background"><Upload className="h-3 w-3 text-primary-foreground" /></button>
               </div>
               <div>
-                <p className="text-foreground font-semibold">Amit Sharma</p>
-                <p className="text-sm text-muted-foreground">Owner & Lead Photographer</p>
+                <p className="text-foreground font-semibold">{displayName}</p>
+                <p className="text-sm text-muted-foreground">{roleLabel}</p>
               </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2"><Label>Full Name</Label><Input defaultValue="Amit Sharma" /></div>
-              <div className="space-y-2"><Label>Role</Label><Select defaultValue="owner"><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="owner">Owner</SelectItem><SelectItem value="admin">Admin</SelectItem><SelectItem value="manager">Manager</SelectItem></SelectContent></Select></div>
-              <div className="space-y-2"><Label>Email</Label><Input defaultValue="amit@amitstudio.com" /></div>
-              <div className="space-y-2"><Label>Phone</Label><Input defaultValue="+91 98765 43210" /></div>
+              <div className="space-y-2"><Label>Full Name</Label><Input value={displayName} readOnly /></div>
+              <div className="space-y-2"><Label>Role</Label><Input value={roleLabel} readOnly /></div>
+              <div className="space-y-2"><Label>Email</Label><Input value={studioEmail || user?.email || ""} readOnly placeholder="Not set" /></div>
+              <div className="space-y-2"><Label>Phone</Label><Input value={studioPhone} readOnly placeholder="Not set" /></div>
             </div>
             <Button className="gap-2"><Save className="h-3.5 w-3.5" /> Update Profile</Button>
           </div>
         </TabsContent>
 
-        {/* ═══ BRANDING ═══ */}
         <TabsContent value="branding" className="space-y-6">
           <div className="rounded-xl bg-card border border-border p-6 space-y-5">
             <h2 className="font-display font-semibold text-foreground">Logo & Watermark</h2>
@@ -136,14 +203,14 @@ export default function SettingsPage() {
                 <Label>Primary Brand Color</Label>
                 <div className="flex items-center gap-2">
                   <div className="h-10 w-10 rounded-lg bg-primary border border-border cursor-pointer" />
-                  <Input defaultValue="#C5963A" className="flex-1" />
+                  <Input value={studioPrimaryColor} readOnly className="flex-1" placeholder="Not set" />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label>Secondary Color</Label>
                 <div className="flex items-center gap-2">
                   <div className="h-10 w-10 rounded-lg bg-secondary border border-border cursor-pointer" />
-                  <Input defaultValue="#1E1E1E" className="flex-1" />
+                  <Input value="" readOnly className="flex-1" placeholder="Not set" />
                 </div>
               </div>
             </div>
@@ -154,7 +221,7 @@ export default function SettingsPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2"><Label>Invoice Prefix</Label><Input defaultValue="INV-2026-" /></div>
               <div className="space-y-2"><Label>Quotation Prefix</Label><Input defaultValue="QT-2026-" /></div>
-              <div className="space-y-2 sm:col-span-2"><Label>Invoice Footer Text</Label><Textarea defaultValue="Thank you for choosing Amit Studio Photography. Payments are non-refundable." rows={2} /></div>
+              <div className="space-y-2 sm:col-span-2"><Label>Invoice Footer Text</Label><Textarea value={invoiceFooter} readOnly placeholder="Not set" rows={2} /></div>
               <div className="space-y-2"><Label>Default Payment Terms</Label><Select defaultValue="15"><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="7">Net 7 days</SelectItem><SelectItem value="15">Net 15 days</SelectItem><SelectItem value="30">Net 30 days</SelectItem></SelectContent></Select></div>
               <div className="space-y-2"><Label>Currency</Label><Select defaultValue="INR"><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="INR">₹ INR</SelectItem><SelectItem value="USD">$ USD</SelectItem></SelectContent></Select></div>
             </div>
@@ -162,7 +229,6 @@ export default function SettingsPage() {
           </div>
         </TabsContent>
 
-        {/* ═══ INTEGRATIONS ═══ */}
         <TabsContent value="integrations" className="space-y-6">
           <div className="rounded-xl bg-card border border-border p-6 space-y-5">
             <h2 className="font-display font-semibold text-foreground">Connected Services</h2>
@@ -195,7 +261,6 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          {/* API Keys */}
           <div className="rounded-xl bg-card border border-border p-6 space-y-5">
             <div className="flex items-center justify-between">
               <h2 className="font-display font-semibold text-foreground">API Keys</h2>
@@ -206,16 +271,15 @@ export default function SettingsPage() {
                 <Key className="h-4 w-4 text-muted-foreground shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium text-foreground">Production API Key</p>
-                  <p className="text-xs text-muted-foreground font-mono truncate">{showApiKey ? "sk_live_a1b2c3d4e5f6g7h8i9j0" : "sk_live_••••••••••••••"}</p>
+                  <p className="text-xs text-muted-foreground font-mono truncate">{showApiKey ? "No API key configured" : "••••••••••••••"}</p>
                 </div>
                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setShowApiKey(!showApiKey)}>{showApiKey ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}</Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { navigator.clipboard.writeText("sk_live_a1b2c3d4e5f6g7h8i9j0"); toast.success("API key copied"); }}><Copy className="h-3.5 w-3.5" /></Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => toast.info("No API key configured yet")}><Copy className="h-3.5 w-3.5" /></Button>
               </div>
             </div>
           </div>
         </TabsContent>
 
-        {/* ═══ NOTIFICATIONS ═══ */}
         <TabsContent value="notifications" className="space-y-6">
           <div className="rounded-xl bg-card border border-border p-6 space-y-5">
             <h2 className="font-display font-semibold text-foreground">Notification Preferences</h2>
@@ -246,8 +310,8 @@ export default function SettingsPage() {
             <h2 className="font-display font-semibold text-foreground">Delivery Channels</h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {[
-                { icon: Mail, label: "Email", desc: "amit@amitstudio.com", active: true },
-                { icon: MessageSquare, label: "WhatsApp", desc: "+91 98765 43210", active: true },
+                { icon: Mail, label: "Email", desc: studioEmail || "Not set", active: Boolean(studioEmail) },
+                { icon: MessageSquare, label: "WhatsApp", desc: studioPhone || "Not set", active: Boolean(studioPhone) },
                 { icon: Smartphone, label: "Push Notifications", desc: "Browser & mobile", active: false },
               ].map((ch) => (
                 <div key={ch.label} className={cn("rounded-xl border p-4 text-center transition-all cursor-pointer", ch.active ? "border-primary/30 bg-primary/5" : "border-border hover:border-primary/20")}>
@@ -261,15 +325,14 @@ export default function SettingsPage() {
           </div>
         </TabsContent>
 
-        {/* ═══ BILLING ═══ */}
         <TabsContent value="billing" className="space-y-6">
           <div className="rounded-xl bg-card border border-border p-6 space-y-5">
             <h2 className="font-display font-semibold text-foreground">Payment Settings</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2"><Label>Bank Name</Label><Input defaultValue="HDFC Bank" /></div>
-              <div className="space-y-2"><Label>Account Number</Label><Input defaultValue="**** **** 4521" /></div>
-              <div className="space-y-2"><Label>IFSC Code</Label><Input defaultValue="HDFC0001234" /></div>
-              <div className="space-y-2"><Label>UPI ID</Label><Input defaultValue="amitstudio@hdfcbank" /></div>
+              <div className="space-y-2"><Label>Bank Name</Label><Input value="" readOnly placeholder="Not set" /></div>
+              <div className="space-y-2"><Label>Account Number</Label><Input value="" readOnly placeholder="Not set" /></div>
+              <div className="space-y-2"><Label>IFSC Code</Label><Input value="" readOnly placeholder="Not set" /></div>
+              <div className="space-y-2"><Label>UPI ID</Label><Input value="" readOnly placeholder="Not set" /></div>
             </div>
             <Button className="gap-2"><Save className="h-3.5 w-3.5" /> Save Payment Details</Button>
           </div>
@@ -277,7 +340,6 @@ export default function SettingsPage() {
           <SubscriptionManager />
         </TabsContent>
 
-        {/* ═══ ADVANCED ═══ */}
         <TabsContent value="advanced" className="space-y-6">
           <div className="rounded-xl bg-card border border-border p-6 space-y-5">
             <h2 className="font-display font-semibold text-foreground">Data Management</h2>
