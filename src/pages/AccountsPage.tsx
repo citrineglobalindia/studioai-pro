@@ -207,13 +207,9 @@ const AccountsPage = () => {
   };
 
   // ─── Computed data ───
-  // Payments from mock data
-  const allPayments = sampleProjects.flatMap((p) =>
-    p.payments.map((pay) => ({ ...pay, clientName: `${p.clientName} & ${p.partnerName}`, projectId: p.id, projectName: p.package }))
-  );
-
-  const totalRevenue = allPayments.filter(p => p.status === "paid").reduce((s, p) => s + p.paidAmount, 0);
-  const totalPending = allPayments.filter(p => p.status !== "paid").reduce((s, p) => s + (p.amount - p.paidAmount), 0);
+  // Revenue from DB invoices
+  const totalRevenue = dbInvoices.reduce((s, inv) => s + (inv.amount_paid || 0), 0);
+  const totalPending = dbInvoices.reduce((s, inv) => s + ((inv.total_amount || 0) - (inv.amount_paid || 0)), 0);
   const approvedExpenses = expenses.filter(e => e.approval_status === "approved").reduce((s, e) => s + Number(e.amount), 0);
   const pendingExpenseCount = expenses.filter(e => e.approval_status === "pending").length;
   const netProfit = totalRevenue - approvedExpenses;
@@ -227,32 +223,34 @@ const AccountsPage = () => {
     });
   }, [expenses, search, statusFilter]);
 
-  // Project-wise P&L
+  // Project-wise P&L from DB
   const projectPL = useMemo(() => {
-    return sampleProjects.filter(p => p.payments.length > 0).map(project => {
-      const income = project.payments.reduce((s, p) => s + p.paidAmount, 0);
+    return dbProjects.map(project => {
+      const projectInvoices = dbInvoices.filter(inv => inv.project_id === project.id || inv.client_id === project.client_id);
+      const income = projectInvoices.reduce((s, inv) => s + (inv.amount_paid || 0), 0);
       const projectExpenses = expenses
-        .filter(e => e.approval_status === "approved" && (e.client_name === project.clientName || e.project_name === project.package))
+        .filter(e => e.approval_status === "approved" && (e.project_name === project.project_name || (project.client && e.client_name === project.client.name)))
         .reduce((s, e) => s + Number(e.amount), 0);
+      const totalAmount = project.total_amount || 0;
       return {
         id: project.id,
-        name: `${project.clientName} & ${project.partnerName}`,
-        package: project.package,
-        totalAmount: project.totalAmount,
+        name: project.client ? `${project.client.name}${project.client.partner_name ? ` & ${project.client.partner_name}` : ''}` : project.project_name,
+        package: project.project_name,
+        totalAmount,
         income,
         expenses: projectExpenses,
         profit: income - projectExpenses,
-        paidPct: project.totalAmount > 0 ? Math.round((income / project.totalAmount) * 100) : 0,
+        paidPct: totalAmount > 0 ? Math.round((income / totalAmount) * 100) : 0,
       };
     });
-  }, [expenses]);
+  }, [dbProjects, dbInvoices, expenses]);
 
-  // Ledger entries — merge payments and approved expenses into chronological list
+  // Ledger entries from invoices and expenses
   const ledgerEntries = useMemo(() => {
     const entries: { date: string; type: "income" | "expense"; description: string; client: string; amount: number; balance?: number }[] = [];
     
-    allPayments.filter(p => p.status === "paid" && p.paidDate).forEach(p => {
-      entries.push({ date: p.paidDate!, type: "income", description: `${p.label} (${p.invoiceNumber || "N/A"})`, client: p.clientName, amount: p.paidAmount });
+    dbInvoices.filter(inv => inv.amount_paid > 0).forEach(inv => {
+      entries.push({ date: inv.created_at.slice(0, 10), type: "income", description: `${inv.invoice_number} - ${inv.project_name || inv.client_name}`, client: inv.client_name, amount: inv.amount_paid });
     });
 
     expenses.filter(e => e.approval_status === "approved").forEach(e => {
@@ -268,19 +266,19 @@ const AccountsPage = () => {
     });
 
     return entries;
-  }, [expenses]);
+  }, [dbInvoices, expenses]);
 
   // Client list for expense form
   const clientNames = [...new Set([
-    ...sampleClients.map(c => c.name),
-    ...sampleProjects.map(p => p.clientName),
+    ...dbClients.map(c => c.name),
+    ...dbProjects.map(p => p.project_name),
   ])];
 
   // Event names linked to selected client
   const clientEvents = useMemo(() => {
-    const project = sampleProjects.find(p => p.clientName === expClient);
-    return project ? project.subEvents.map(se => se.name) : [];
-  }, [expClient]);
+    const project = dbProjects.find(p => p.project_name === expClient || (p.client && p.client.name === expClient));
+    return project ? [project.event_type || "Event"] : [];
+  }, [expClient, dbProjects]);
 
   return (
     <div className="space-y-6">
