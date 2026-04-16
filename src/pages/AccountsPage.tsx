@@ -19,7 +19,7 @@ import { toast } from "sonner";
 import { useProjects } from "@/hooks/useProjects";
 import { useClients } from "@/hooks/useClients";
 import { useInvoices } from "@/hooks/useInvoices";
-import { type Payment, type PaymentStatus, type PaymentType } from "@/data/wedding-types";
+import { type PaymentStatus } from "@/data/wedding-types";
 import { useRole } from "@/contexts/RoleContext";
 import {
   Search, IndianRupee, FileText, CheckCircle2, Clock, AlertCircle,
@@ -341,15 +341,15 @@ const AccountsPage = () => {
             <Card>
               <CardHeader className="pb-2"><CardTitle className="text-base">Recent Payments</CardTitle></CardHeader>
               <CardContent className="space-y-2">
-                {allPayments.filter(p => p.status === "paid").slice(0, 5).map((p) => (
-                  <div key={p.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 border border-border">
+                {dbInvoices.filter(inv => inv.amount_paid > 0).slice(0, 5).map((inv) => (
+                  <div key={inv.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 border border-border">
                     <div>
-                      <p className="text-sm font-medium text-foreground">{p.clientName}</p>
-                      <p className="text-xs text-muted-foreground">{p.label} · {p.paidDate}</p>
+                      <p className="text-sm font-medium text-foreground">{inv.client_name}</p>
+                      <p className="text-xs text-muted-foreground">{inv.invoice_number} · {inv.project_name || "—"}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-bold text-green-600">{fmt(p.paidAmount)}</p>
-                      <Badge variant="outline" className={cn("text-[10px]", paymentStatusConfig[p.status].class)}>{paymentStatusConfig[p.status].label}</Badge>
+                      <p className="text-sm font-bold text-green-600">{fmt(inv.amount_paid)}</p>
+                      <Badge variant="outline" className={cn("text-[10px]", inv.status === "paid" ? paymentStatusConfig.paid.class : paymentStatusConfig.partial.class)}>{inv.status === "paid" ? "Paid" : "Partial"}</Badge>
                     </div>
                   </div>
                 ))}
@@ -411,10 +411,10 @@ const AccountsPage = () => {
         <TabsContent value="invoices" className="space-y-4 mt-4">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             {[
-              { label: "Total Revenue", value: fmt(allPayments.reduce((s, p) => s + p.amount, 0)), color: "text-foreground" },
+              { label: "Total Invoiced", value: fmt(dbInvoices.reduce((s, inv) => s + (inv.total_amount || 0), 0)), color: "text-foreground" },
               { label: "Collected", value: fmt(totalRevenue), color: "text-emerald-500" },
               { label: "Pending", value: fmt(totalPending), color: "text-amber-500" },
-              { label: "Overdue", value: fmt(allPayments.filter(p => p.status !== "paid" && new Date(p.dueDate) < new Date()).reduce((s, p) => s + (p.amount - p.paidAmount), 0)), color: "text-red-500" },
+              { label: "Overdue", value: fmt(dbInvoices.filter(inv => inv.status !== "paid" && inv.due_date && new Date(inv.due_date) < new Date()).reduce((s, inv) => s + ((inv.total_amount || 0) - (inv.amount_paid || 0)), 0)), color: "text-red-500" },
             ].map(s => (
               <div key={s.label} className="rounded-lg bg-card border border-border p-3">
                 <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{s.label}</p>
@@ -424,17 +424,21 @@ const AccountsPage = () => {
           </div>
 
           <div className="space-y-3">
-            {sampleProjects.filter(p => p.payments.length > 0).map((project) => {
-              const projectPaid = project.payments.reduce((s, p) => s + p.paidAmount, 0);
-              const projectTotal = project.payments.reduce((s, p) => s + p.amount, 0);
+            {dbProjects.filter(p => {
+              const hasInvoices = dbInvoices.some(inv => inv.project_id === p.id || inv.client_id === p.client_id);
+              return hasInvoices || (p.total_amount && p.total_amount > 0);
+            }).map((project) => {
+              const projectInvoices = dbInvoices.filter(inv => inv.project_id === project.id || inv.client_id === project.client_id);
+              const projectPaid = projectInvoices.reduce((s, inv) => s + (inv.amount_paid || 0), 0);
+              const projectTotal = project.total_amount || projectInvoices.reduce((s, inv) => s + (inv.total_amount || 0), 0);
               const pct = projectTotal > 0 ? Math.round((projectPaid / projectTotal) * 100) : 0;
 
               return (
                 <Card key={project.id}>
                   <div className="flex items-center justify-between p-3 border-b border-border cursor-pointer hover:bg-muted/30" onClick={() => navigate(`/projects/${project.id}`)}>
                     <div className="flex items-center gap-2">
-                      <h3 className="text-sm font-semibold text-foreground">{project.clientName} & {project.partnerName}</h3>
-                      <Badge variant="outline" className="text-[10px]">{project.package}</Badge>
+                      <h3 className="text-sm font-semibold text-foreground">{project.client ? `${project.client.name}${project.client.partner_name ? ` & ${project.client.partner_name}` : ''}` : project.project_name}</h3>
+                      <Badge variant="outline" className="text-[10px]">{project.event_type || "Project"}</Badge>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-medium text-foreground">{fmt(projectPaid)} / {fmt(projectTotal)}</span>
@@ -444,26 +448,24 @@ const AccountsPage = () => {
                     </div>
                   </div>
                   <CardContent className="p-0 divide-y divide-border">
-                    {project.payments.map((payment) => {
-                      const isOverdue = payment.status !== "paid" && new Date(payment.dueDate) < new Date();
-                      const ModeIcon = payment.mode ? modeIcons[payment.mode] || CreditCard : CreditCard;
+                    {projectInvoices.map((inv) => {
+                      const isOverdue = inv.status !== "paid" && inv.due_date && new Date(inv.due_date) < new Date();
                       return (
-                        <div key={payment.id} className="flex items-center justify-between px-4 py-2.5 hover:bg-muted/20">
+                        <div key={inv.id} className="flex items-center justify-between px-4 py-2.5 hover:bg-muted/20">
                           <div className="flex items-center gap-2">
                             <IndianRupee className="h-3.5 w-3.5 text-muted-foreground" />
                             <div>
-                              <p className="text-sm font-medium text-foreground">{payment.label}</p>
+                              <p className="text-sm font-medium text-foreground">{inv.invoice_number}</p>
                               <p className="text-xs text-muted-foreground flex items-center gap-1">
                                 <CalendarDays className="h-3 w-3" />
-                                Due {new Date(payment.dueDate).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
-                                {payment.paidDate && <><ModeIcon className="h-3 w-3 ml-2" /> Paid {new Date(payment.paidDate).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}</>}
+                                {inv.due_date ? `Due ${new Date(inv.due_date).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}` : "No due date"}
                               </p>
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
-                            <p className="text-sm font-bold text-foreground">{fmt(payment.amount)}</p>
-                            <Badge variant="outline" className={cn("text-[10px]", isOverdue ? paymentStatusConfig.overdue.class : paymentStatusConfig[payment.status].class)}>
-                              {isOverdue ? "Overdue" : paymentStatusConfig[payment.status].label}
+                            <p className="text-sm font-bold text-foreground">{fmt(inv.total_amount)}</p>
+                            <Badge variant="outline" className={cn("text-[10px]", isOverdue ? paymentStatusConfig.overdue.class : inv.status === "paid" ? paymentStatusConfig.paid.class : paymentStatusConfig.pending.class)}>
+                              {isOverdue ? "Overdue" : inv.status === "paid" ? "Paid" : "Pending"}
                             </Badge>
                           </div>
                         </div>
@@ -497,34 +499,31 @@ const AccountsPage = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {allPayments.map((p) => {
-                    const isOverdue = p.status !== "paid" && new Date(p.dueDate) < new Date();
+                  {dbInvoices.map((inv) => {
+                    const isOverdue = inv.status !== "paid" && inv.due_date && new Date(inv.due_date) < new Date();
+                    const remaining = (inv.total_amount || 0) - (inv.amount_paid || 0);
                     return (
-                      <TableRow key={p.id}>
-                        <TableCell className="text-sm font-medium text-foreground">{p.clientName}</TableCell>
-                        <TableCell className="text-xs font-mono text-muted-foreground">{p.invoiceNumber || "—"}</TableCell>
+                      <TableRow key={inv.id}>
+                        <TableCell className="text-sm font-medium text-foreground">{inv.client_name}</TableCell>
+                        <TableCell className="text-xs font-mono text-muted-foreground">{inv.invoice_number}</TableCell>
                         <TableCell>
-                          <Badge variant="outline" className={cn("text-[10px]",
-                            p.type === "advance" ? "bg-primary/15 text-primary border-primary/30" :
-                            p.type === "milestone" ? "bg-blue-500/15 text-blue-400 border-blue-500/30" :
-                            "bg-purple-500/15 text-purple-400 border-purple-500/30"
-                          )}>{p.type}</Badge>
+                          <Badge variant="outline" className="text-[10px] bg-primary/15 text-primary border-primary/30">invoice</Badge>
                         </TableCell>
                         <TableCell>
-                          <p className="text-sm font-bold text-foreground">{fmt(p.amount)}</p>
-                          {p.paidAmount > 0 && p.paidAmount < p.amount && <p className="text-[10px] text-emerald-500">{fmt(p.paidAmount)} paid</p>}
+                          <p className="text-sm font-bold text-foreground">{fmt(inv.total_amount)}</p>
+                          {inv.amount_paid > 0 && inv.amount_paid < inv.total_amount && <p className="text-[10px] text-emerald-500">{fmt(inv.amount_paid)} paid</p>}
                         </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{p.mode || "—"}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{p.paidDate || p.dueDate}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{inv.payment_terms || "—"}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{inv.due_date ? new Date(inv.due_date).toLocaleDateString("en-IN", { day: "numeric", month: "short" }) : "—"}</TableCell>
                         <TableCell>
-                          <Badge variant="outline" className={cn("text-[10px]", isOverdue ? paymentStatusConfig.overdue.class : paymentStatusConfig[p.status].class)}>
-                            {isOverdue ? "Overdue" : paymentStatusConfig[p.status].label}
+                          <Badge variant="outline" className={cn("text-[10px]", isOverdue ? paymentStatusConfig.overdue.class : inv.status === "paid" ? paymentStatusConfig.paid.class : paymentStatusConfig.pending.class)}>
+                            {isOverdue ? "Overdue" : inv.status === "paid" ? "Paid" : "Pending"}
                           </Badge>
                         </TableCell>
                         {isAdmin && (
                           <TableCell>
-                            {p.status === "pending" && (
-                              <Button size="sm" variant="ghost" className="h-7 text-xs text-green-600" onClick={() => toast.success(`Payment verified for ${p.clientName}`)}>
+                            {inv.status !== "paid" && (
+                              <Button size="sm" variant="ghost" className="h-7 text-xs text-green-600" onClick={() => toast.success(`Payment verified for ${inv.client_name}`)}>
                                 <Check className="h-3 w-3 mr-1" /> Verify
                               </Button>
                             )}
