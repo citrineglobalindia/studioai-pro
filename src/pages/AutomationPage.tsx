@@ -16,17 +16,7 @@ interface Automation {
   category: "lead" | "project" | "payment" | "delivery" | "feedback";
 }
 
-const sampleAutomations: Automation[] = [
-  { id: "auto1", name: "New Lead Welcome", trigger: "New lead added", action: "Send welcome message with portfolio link", channel: "whatsapp", isActive: true, runs: 48, lastRun: "2 hrs ago", category: "lead" },
-  { id: "auto2", name: "Lead Follow-up (48h)", trigger: "No response in 48 hours", action: "Send follow-up message", channel: "whatsapp", isActive: true, runs: 32, lastRun: "5 hrs ago", category: "lead" },
-  { id: "auto3", name: "Booking Confirmation", trigger: "Project status → Booked", action: "Send booking confirmation + contract", channel: "email", isActive: true, runs: 15, lastRun: "3 days ago", category: "project" },
-  { id: "auto4", name: "Payment Reminder", trigger: "Payment due in 3 days", action: "Send payment reminder with invoice link", channel: "whatsapp", isActive: true, runs: 22, lastRun: "1 day ago", category: "payment" },
-  { id: "auto5", name: "Overdue Payment Alert", trigger: "Payment overdue", action: "Notify admin + send client reminder", channel: "email", isActive: true, runs: 8, lastRun: "2 days ago", category: "payment" },
-  { id: "auto6", name: "Gallery Ready Notification", trigger: "Gallery marked as delivered", action: "Send gallery access link to client", channel: "whatsapp", isActive: true, runs: 12, lastRun: "4 days ago", category: "delivery" },
-  { id: "auto7", name: "Feedback Request", trigger: "30 days after delivery", action: "Send feedback form + Google review link", channel: "email", isActive: false, runs: 6, lastRun: "2 weeks ago", category: "feedback" },
-  { id: "auto8", name: "Anniversary Reminder", trigger: "1 year from wedding date", action: "Send anniversary wishes + offer", channel: "whatsapp", isActive: false, runs: 0, category: "feedback" },
-  { id: "auto9", name: "Shoot Day Reminder", trigger: "1 day before event", action: "Remind team + send client itinerary", channel: "internal", isActive: true, runs: 28, lastRun: "Yesterday", category: "project" },
-];
+const sampleAutomations: Automation[] = [];
 
 const channelIcons: Record<string, typeof Mail> = { whatsapp: MessageSquare, email: Mail, sms: Bell, internal: Bell };
 const categoryColors: Record<string, string> = {

@@ -30,16 +30,7 @@ interface Notification {
   readAt: string | null;
 }
 
-const mockNotifications: Notification[] = [
-  { id: "N001", title: "New Lead Assigned", message: "A new photography lead has been assigned to you.", type: "in-app", priority: "high", status: "delivered", recipient: "John Smith", sentAt: "2026-04-05 10:30 AM", readAt: null },
-  { id: "N002", title: "Invoice Paid", message: "Invoice #INV-2026-045 has been paid by client.", type: "email", priority: "medium", status: "read", recipient: "All Team", sentAt: "2026-04-04 03:15 PM", readAt: "2026-04-04 04:00 PM" },
-  { id: "N003", title: "Project Deadline", message: "Wedding shoot for Miller family is due tomorrow.", type: "push", priority: "critical", status: "sent", recipient: "Sarah Wilson", sentAt: "2026-04-05 09:00 AM", readAt: null },
-  { id: "N004", title: "Contract Signed", message: "Contract #CT-089 has been signed by the client.", type: "in-app", priority: "low", status: "read", recipient: "Admin", sentAt: "2026-04-03 11:45 AM", readAt: "2026-04-03 12:00 PM" },
-  { id: "N005", title: "Team Meeting Reminder", message: "Weekly standup meeting starts in 30 minutes.", type: "push", priority: "medium", status: "delivered", recipient: "All Team", sentAt: "2026-04-05 09:30 AM", readAt: null },
-  { id: "N006", title: "Gallery Upload Complete", message: "128 photos uploaded to the Johnson Wedding gallery.", type: "email", priority: "low", status: "read", recipient: "Mike Johnson", sentAt: "2026-04-02 05:20 PM", readAt: "2026-04-02 06:00 PM" },
-  { id: "N007", title: "Payment Overdue", message: "Payment for Invoice #INV-2026-032 is 7 days overdue.", type: "sms", priority: "critical", status: "failed", recipient: "Client: Anderson", sentAt: "2026-04-04 10:00 AM", readAt: null },
-  { id: "N008", title: "New Review Received", message: "5-star review received on Google Business.", type: "in-app", priority: "low", status: "delivered", recipient: "Admin", sentAt: "2026-04-01 02:30 PM", readAt: null },
-];
+const mockNotifications: Notification[] = [];
 
 const priorityColor: Record<Priority, string> = {
   low: "bg-muted text-muted-foreground",

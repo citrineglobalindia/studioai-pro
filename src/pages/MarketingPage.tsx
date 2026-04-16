@@ -18,15 +18,7 @@ interface Campaign {
   completedDate?: string;
 }
 
-const sampleCampaigns: Campaign[] = [
-  { id: "cm1", name: "Wedding Season 2026 Offer", type: "email", status: "active", audience: 500, sent: 480, opened: 210, clicked: 45, converted: 8, scheduledDate: "2026-03-25" },
-  { id: "cm2", name: "Holi Special Mini Shoot", type: "whatsapp", status: "completed", audience: 200, sent: 195, opened: 180, clicked: 62, converted: 15, completedDate: "2026-03-15" },
-  { id: "cm3", name: "Monsoon Pre-Wedding", type: "email", status: "scheduled", audience: 350, sent: 0, opened: 0, clicked: 0, converted: 0, scheduledDate: "2026-04-10" },
-  { id: "cm4", name: "Anniversary Shoot Reminder", type: "sms", status: "draft", audience: 120, sent: 0, opened: 0, clicked: 0, converted: 0 },
-  { id: "cm5", name: "Festival Portfolio Showcase", type: "email", status: "completed", audience: 800, sent: 780, opened: 320, clicked: 85, converted: 12, completedDate: "2026-02-20" },
-  { id: "cm6", name: "Lead Re-engagement", type: "whatsapp", status: "paused", audience: 150, sent: 75, opened: 50, clicked: 12, converted: 2 },
-];
-
+const sampleCampaigns: Campaign[] = [];
 const channelIcon: Record<string, typeof Mail> = { email: Mail, whatsapp: MessageSquare, sms: Send };
 const statusStyle: Record<string, string> = {
   draft: "bg-muted text-muted-foreground border-border",

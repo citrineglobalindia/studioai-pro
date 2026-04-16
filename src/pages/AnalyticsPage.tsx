@@ -1,43 +1,18 @@
 import { BarChart3, TrendingUp, IndianRupee, Users, Camera, Calendar } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Area, AreaChart } from "recharts";
 
-const monthlyRevenue = [
-  { month: "Nov", revenue: 280000, bookings: 3 },
-  { month: "Dec", revenue: 420000, bookings: 5 },
-  { month: "Jan", revenue: 350000, bookings: 4 },
-  { month: "Feb", revenue: 180000, bookings: 2 },
-  { month: "Mar", revenue: 480000, bookings: 6 },
-  { month: "Apr", revenue: 320000, bookings: 4 },
-];
+const monthlyRevenue: { month: string; revenue: number; bookings: number }[] = [];
 
-const leadSources = [
-  { name: "Instagram", value: 45, color: "hsl(var(--primary))" },
-  { name: "WhatsApp", value: 25, color: "hsl(210, 70%, 55%)" },
-  { name: "Referral", value: 18, color: "hsl(150, 60%, 45%)" },
-  { name: "Website", value: 8, color: "hsl(270, 50%, 55%)" },
-  { name: "Call", value: 4, color: "hsl(0, 60%, 50%)" },
-];
+const leadSources: { name: string; value: number; color: string }[] = [];
 
-const packagePopularity = [
-  { name: "Classic", bookings: 12, revenue: 1800000 },
-  { name: "Premium", bookings: 18, revenue: 4500000 },
-  { name: "Royal", bookings: 8, revenue: 2800000 },
-  { name: "Destination", bookings: 3, revenue: 1500000 },
-];
+const packagePopularity: { name: string; bookings: number; revenue: number }[] = [];
 
-const conversionTrend = [
-  { month: "Nov", rate: 28 },
-  { month: "Dec", rate: 32 },
-  { month: "Jan", rate: 25 },
-  { month: "Feb", rate: 35 },
-  { month: "Mar", rate: 40 },
-  { month: "Apr", rate: 38 },
-];
+const conversionTrend: { month: string; rate: number }[] = [];
 
-const totalRevenue = monthlyRevenue.reduce((s, m) => s + m.revenue, 0);
-const totalBookings = monthlyRevenue.reduce((s, m) => s + m.bookings, 0);
-const avgDealSize = Math.round(totalRevenue / totalBookings);
-const avgConversion = Math.round(conversionTrend.reduce((s, c) => s + c.rate, 0) / conversionTrend.length);
+const totalRevenue = 0;
+const totalBookings = 0;
+const avgDealSize = 0;
+const avgConversion = 0;
 
 export default function AnalyticsPage() {
   return (

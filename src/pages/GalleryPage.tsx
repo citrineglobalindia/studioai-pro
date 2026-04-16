@@ -19,14 +19,7 @@ interface Gallery {
   coverColor: string;
 }
 
-const sampleGalleries: Gallery[] = [
-  { id: "g1", client: "Priya & Rahul", event: "Mehendi", totalPhotos: 245, selectedPhotos: 180, deliveredPhotos: 180, status: "delivered", uploadDate: "2026-03-14", coverColor: "from-rose-500/20 to-orange-500/20" },
-  { id: "g2", client: "Priya & Rahul", event: "Haldi", totalPhotos: 320, selectedPhotos: 200, deliveredPhotos: 0, status: "editing", uploadDate: "2026-03-15", coverColor: "from-yellow-500/20 to-amber-500/20" },
-  { id: "g3", client: "Priya & Rahul", event: "Sangeet", totalPhotos: 0, selectedPhotos: 0, deliveredPhotos: 0, status: "uploading", uploadDate: "2026-04-14", coverColor: "from-purple-500/20 to-pink-500/20" },
-  { id: "g4", client: "Meera & Aditya", event: "Wedding", totalPhotos: 520, selectedPhotos: 350, deliveredPhotos: 0, status: "selection", uploadDate: "2026-03-21", coverColor: "from-primary/20 to-primary/10" },
-  { id: "g5", client: "Meera & Aditya", event: "Haldi", totalPhotos: 180, selectedPhotos: 180, deliveredPhotos: 180, status: "shared", uploadDate: "2026-03-20", shareLink: "https://gallery.studio.com/meera-haldi", coverColor: "from-emerald-500/20 to-teal-500/20" },
-  { id: "g6", client: "Meera & Aditya", event: "Reception", totalPhotos: 290, selectedPhotos: 0, deliveredPhotos: 0, status: "editing", uploadDate: "2026-03-22", coverColor: "from-blue-500/20 to-indigo-500/20" },
-];
+const sampleGalleries: Gallery[] = [];
 
 const statusConfig: Record<string, { label: string; style: string }> = {
   uploading: { label: "Uploading", style: "bg-muted text-muted-foreground border-border" },
