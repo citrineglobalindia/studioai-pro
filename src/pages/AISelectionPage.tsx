@@ -17,12 +17,7 @@ interface PhotoBatch {
   status: "queued" | "processing" | "completed" | "review";
 }
 
-const sampleBatches: PhotoBatch[] = [
-  { id: "b1", event: "Mehendi - Priya & Rahul", client: "Priya & Rahul", totalPhotos: 245, processed: 245, bestShots: 180, duplicates: 32, blurry: 15, faceGroups: 8, status: "completed" },
-  { id: "b2", event: "Haldi - Priya & Rahul", client: "Priya & Rahul", totalPhotos: 320, processed: 320, bestShots: 200, duplicates: 58, blurry: 22, faceGroups: 12, status: "review" },
-  { id: "b3", event: "Wedding - Meera & Aditya", client: "Meera & Aditya", totalPhotos: 520, processed: 380, bestShots: 0, duplicates: 0, blurry: 0, faceGroups: 0, status: "processing" },
-  { id: "b4", event: "Reception - Meera & Aditya", client: "Meera & Aditya", totalPhotos: 290, processed: 0, bestShots: 0, duplicates: 0, blurry: 0, faceGroups: 0, status: "queued" },
-];
+const sampleBatches: PhotoBatch[] = [];
 
 const statusConfig: Record<string, { label: string; style: string }> = {
   queued: { label: "Queued", style: "bg-muted text-muted-foreground border-border" },
