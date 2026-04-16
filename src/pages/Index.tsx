@@ -125,7 +125,10 @@ const Index = () => {
   const navigate = useNavigate();
   const { currentRole } = useRole();
   const { organization } = useOrg();
+  const { clients: dbClients } = useClients();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+
+  const totalClientBudget = useMemo(() => dbClients.reduce((s, c) => s + (c.budget || 0), 0), [dbClients]);
 
   const eventDates = useMemo(() => {
     const dates: Date[] = [];
@@ -134,8 +137,12 @@ const Index = () => {
         dates.push(new Date(se.date));
       }
     });
+    // Also include client event dates from DB
+    dbClients.forEach((c) => {
+      if (c.event_date) dates.push(new Date(c.event_date));
+    });
     return dates;
-  }, []);
+  }, [dbClients]);
 
   const selectedDateEvents = useMemo(() => {
     if (!selectedDate) return [];
