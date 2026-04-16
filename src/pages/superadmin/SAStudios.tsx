@@ -99,7 +99,7 @@ export default function SAStudios() {
 
   const fetchData = async () => {
     setLoading(true);
-    const [orgsRes, subsRes, membersRes, plansRes, clientsRes, projectsRes, invoicesRes] = await Promise.all([
+    const [orgsRes, subsRes, membersRes, plansRes, clientsRes, projectsRes, invoicesRes, roleRestRes, modRestRes] = await Promise.all([
       supabase.from("organizations").select("*").order("created_at", { ascending: false }),
       supabase.from("subscriptions").select("id, organization_id, status, trial_ends_at, plan_id"),
       supabase.from("organization_members").select("organization_id, user_id"),
@@ -107,6 +107,8 @@ export default function SAStudios() {
       supabase.from("clients").select("id, organization_id"),
       supabase.from("projects").select("id, organization_id"),
       supabase.from("invoices").select("id, organization_id, amount_paid"),
+      supabase.from("studio_role_restrictions").select("organization_id, disabled_roles"),
+      supabase.from("studio_module_restrictions").select("organization_id, restricted_modules"),
     ]);
 
     const orgsData = (orgsRes.data as TenantOrg[]) || [];
