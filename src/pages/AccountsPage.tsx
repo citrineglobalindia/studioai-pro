@@ -19,7 +19,7 @@ import { toast } from "sonner";
 import { useProjects } from "@/hooks/useProjects";
 import { useClients } from "@/hooks/useClients";
 import { useInvoices } from "@/hooks/useInvoices";
-import { type Payment, type PaymentStatus, type PaymentType } from "@/data/wedding-types";
+import { type PaymentStatus } from "@/data/wedding-types";
 import { useRole } from "@/contexts/RoleContext";
 import {
   Search, IndianRupee, FileText, CheckCircle2, Clock, AlertCircle,
