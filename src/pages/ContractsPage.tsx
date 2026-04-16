@@ -50,15 +50,7 @@ const defaultClauses: ContractClause[] = [
   { id: "c8", text: "Raw files not included in standard delivery" },
 ];
 
-const sampleContracts: Contract[] = [
-  { id: "ct1", contractNumber: "CTR-2026-001", client: "Priya Sharma & Rahul Kapoor", project: "Royal Wedding Package", amount: 350000, status: "signed", createdDate: "2026-03-01", sentDate: "2026-03-02", signedDate: "2026-03-03", expiryDate: "2026-04-01", clauses: defaultClauses.slice(0, 4) },
-  { id: "ct2", contractNumber: "CTR-2026-002", client: "Ananya Desai & Vikram Malhotra", project: "Premium Wedding Package", amount: 250000, status: "signed", createdDate: "2026-03-10", sentDate: "2026-03-11", signedDate: "2026-03-12", expiryDate: "2026-04-10", clauses: defaultClauses.slice(0, 3) },
-  { id: "ct3", contractNumber: "CTR-2026-003", client: "Sneha Kapoor & Rohan Jain", project: "Destination Wedding", amount: 500000, status: "sent", createdDate: "2026-03-28", sentDate: "2026-03-29", expiryDate: "2026-04-15", clauses: defaultClauses.slice(0, 5) },
-  { id: "ct4", contractNumber: "CTR-2026-004", client: "Ritu & Karan", project: "Premium Wedding", amount: 300000, status: "viewed", createdDate: "2026-03-20", sentDate: "2026-03-21", expiryDate: "2026-04-15", clauses: defaultClauses.slice(0, 3) },
-  { id: "ct5", contractNumber: "CTR-2026-005", client: "Divya & Arun", project: "Royal Package", amount: 350000, status: "draft", createdDate: "2026-03-30", expiryDate: "2026-04-30", clauses: defaultClauses.slice(0, 4) },
-  { id: "ct6", contractNumber: "CTR-2026-006", client: "Sunita & Raj", project: "Premium Package", amount: 250000, status: "expired", createdDate: "2026-02-15", sentDate: "2026-02-16", expiryDate: "2026-03-15", clauses: defaultClauses.slice(0, 2) },
-];
-
+const sampleContracts: Contract[] = [];
 const statusConfig: Record<string, { label: string; style: string; icon: typeof Clock; bgColor: string }> = {
   draft: { label: "Draft", style: "bg-muted text-muted-foreground border-border", icon: Briefcase, bgColor: "bg-muted/50" },
   sent: { label: "Sent", style: "bg-blue-500/20 text-blue-400 border-blue-500/30", icon: Send, bgColor: "bg-blue-500/10" },

@@ -84,59 +84,7 @@ const roleColors: Record<AppRole, string> = {
   accounts: "bg-teal-500/10 text-teal-500 border-teal-500/20",
 };
 
-const sampleTasks: Task[] = [
-  {
-    id: "t1", title: "Edit Mehendi photos", description: "Cull and edit 500+ photos from the Mehendi ceremony. Apply consistent color grading.", project: "Priya & Rahul", assigneeId: "tm1", assigneeName: "Priya Verma", assigneeRole: "editor", priority: "high", status: "in-progress", dueDate: "2026-04-05", category: "editing", progress: 65, createdAt: "2026-03-28", assignedBy: "Admin", assignedAt: "2026-03-28",
-    subtasks: [{ id: "s1", title: "Cull photos", done: true }, { id: "s2", title: "Color grading", done: true }, { id: "s3", title: "Retouching", done: false }, { id: "s4", title: "Export & upload", done: false }],
-    comments: [{ id: "c1", author: "Priya Verma", text: "Color grading done, starting retouching now.", date: "2026-04-02" }],
-  },
-  {
-    id: "t2", title: "Haldi video rough cut", description: "Create first rough cut of Haldi ceremony video with background music.", project: "Priya & Rahul", assigneeId: "tm2", assigneeName: "Neha Gupta", assigneeRole: "editor", priority: "high", status: "in-progress", dueDate: "2026-04-04", category: "editing", progress: 40, createdAt: "2026-03-29", assignedBy: "Admin", assignedAt: "2026-03-29",
-    subtasks: [{ id: "s5", title: "Footage sync", done: true }, { id: "s6", title: "Rough cut", done: false }, { id: "s7", title: "Add music", done: false }],
-    comments: [{ id: "c2", author: "Neha Gupta", text: "Footage synced. Working on timeline.", date: "2026-04-01" }],
-  },
-  {
-    id: "t3", title: "Send gallery link to Meera", description: "Upload final gallery and share the link with the client for review.", project: "Meera & Aditya", assigneeId: "tm3", assigneeName: "Amit Kumar", assigneeRole: "photographer", priority: "medium", status: "todo", dueDate: "2026-04-03", category: "delivery", progress: 0, createdAt: "2026-03-30", assignedBy: "Admin", assignedAt: "2026-03-30",
-    subtasks: [{ id: "s8", title: "Upload to gallery", done: false }, { id: "s9", title: "Send email", done: false }],
-    comments: [],
-  },
-  {
-    id: "t4", title: "Confirm venue access for Sangeet", description: "Contact venue manager and confirm entry for equipment setup.", project: "Priya & Rahul", assigneeId: "tm4", assigneeName: "Raj Patel", assigneeRole: "videographer", priority: "high", status: "done", dueDate: "2026-04-01", category: "shoot-prep", progress: 100, createdAt: "2026-03-25", assignedBy: "Admin", assignedAt: "2026-03-25",
-    subtasks: [{ id: "s10", title: "Call venue", done: true }, { id: "s11", title: "Get permission letter", done: true }],
-    comments: [{ id: "c3", author: "Raj Patel", text: "Venue confirmed. Entry from 2 PM.", date: "2026-03-31" }],
-  },
-  {
-    id: "t5", title: "Follow up on Sneha's inquiry", description: "Reach out regarding wedding photography package inquiry.", project: "Sneha & Rohan", assigneeId: "tm7", assigneeName: "Anjali Sharma", assigneeRole: "telecaller", priority: "medium", status: "todo", dueDate: "2026-04-02", category: "communication", progress: 0, createdAt: "2026-03-28", assignedBy: "Admin", assignedAt: "2026-03-28",
-    subtasks: [{ id: "s12", title: "Call client", done: false }, { id: "s13", title: "Send quotation", done: false }],
-    comments: [],
-  },
-  {
-    id: "t6", title: "Wedding ceremony photos review", description: "Review all ceremony shots and shortlist the best 200 for album.", project: "Meera & Aditya", assigneeId: "tm1", assigneeName: "Priya Verma", assigneeRole: "editor", priority: "medium", status: "review", dueDate: "2026-04-06", category: "editing", progress: 85, createdAt: "2026-03-27", assignedBy: "Admin", assignedAt: "2026-03-27",
-    subtasks: [{ id: "s14", title: "Shortlist photos", done: true }, { id: "s15", title: "Client review", done: false }],
-    comments: [{ id: "c4", author: "Priya Verma", text: "Shortlisted 220 photos. Waiting for client feedback.", date: "2026-04-03" }],
-  },
-  {
-    id: "t7", title: "Update contract for Ananya", description: "Revise the contract with updated package details and payment terms.", project: "Ananya & Vikram", assigneeId: "tm7", assigneeName: "Anjali Sharma", assigneeRole: "telecaller", priority: "low", status: "todo", dueDate: "2026-04-08", category: "admin", progress: 0, createdAt: "2026-03-30", assignedBy: "Admin", assignedAt: "2026-03-30",
-    subtasks: [{ id: "s16", title: "Draft contract", done: false }, { id: "s17", title: "Legal review", done: false }, { id: "s18", title: "Send to client", done: false }],
-    comments: [],
-  },
-  {
-    id: "t8", title: "Order album prints", description: "Place order for 12x36 album prints with the printing vendor.", project: "Kavya & Arjun", assigneeId: "tm5", assigneeName: "Kiran Joshi", assigneeRole: "photographer", priority: "medium", status: "todo", dueDate: "2026-04-10", category: "delivery", progress: 0, createdAt: "2026-04-01", assignedBy: "Admin", assignedAt: "2026-04-01",
-    subtasks: [{ id: "s19", title: "Finalize layout", done: false }, { id: "s20", title: "Place order", done: false }],
-    comments: [],
-  },
-  {
-    id: "t9", title: "Reception highlights edit", description: "Create a 5-min highlight reel from the reception footage.", project: "Meera & Aditya", assigneeId: "tm6", assigneeName: "Suresh Nair", assigneeRole: "editor", priority: "high", status: "review", dueDate: "2026-04-07", category: "editing", progress: 90, createdAt: "2026-03-26", assignedBy: "Admin", assignedAt: "2026-03-26",
-    subtasks: [{ id: "s21", title: "Select clips", done: true }, { id: "s22", title: "Edit timeline", done: true }, { id: "s23", title: "Color grade", done: true }, { id: "s24", title: "Final export", done: false }],
-    comments: [{ id: "c5", author: "Suresh Nair", text: "Almost done. Final color pass remaining.", date: "2026-04-04" }],
-  },
-  {
-    id: "t10", title: "Pack gear for Jaipur wedding", description: "Prepare all camera bodies, lenses, lighting, and backup equipment.", project: "Ananya & Vikram", assigneeId: "tm5", assigneeName: "Kiran Joshi", assigneeRole: "photographer", priority: "high", status: "todo", dueDate: "2026-04-25", category: "shoot-prep", progress: 0, createdAt: "2026-04-01", assignedBy: "Admin", assignedAt: "2026-04-01",
-    subtasks: [{ id: "s25", title: "Check camera bodies", done: false }, { id: "s26", title: "Pack lenses", done: false }, { id: "s27", title: "Charge batteries", done: false }, { id: "s28", title: "Backup cards", done: false }],
-    comments: [],
-  },
-];
-
+const sampleTasks: Task[] = [];
 const columns = [
   { key: "todo", label: "To Do", icon: ListTodo, color: "text-muted-foreground", bg: "bg-muted/50" },
   { key: "in-progress", label: "In Progress", icon: Clock, color: "text-blue-500", bg: "bg-blue-500/5" },
