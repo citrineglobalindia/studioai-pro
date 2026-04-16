@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import {
   Building2, Users, Search, Eye, Settings2, CheckCircle2, XCircle, Clock,
   FolderKanban, IndianRupee, MapPin, Phone, Calendar, MoreVertical, LogIn,
-  Shield, Blocks, Grid3X3, List, RotateCcw, Sparkles, Loader2,
+  Shield, Blocks, Grid3X3, List, RotateCcw, Sparkles, Loader2, Trash2,
 } from "lucide-react";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
