@@ -61,7 +61,7 @@ const channelEmoji: Record<string, string> = {
   call: "📞",
 };
 
-const teamMembers = ["Amit Kumar", "Neha Patel", "Raj Verma", "Sita Gupta", "Vikram Joshi"];
+const teamMembers: string[] = [];
 
 export default function CommunicationsPage() {
   const [mainTab, setMainTab] = useState("inapp");
@@ -69,8 +69,8 @@ export default function CommunicationsPage() {
   const [reply, setReply] = useState("");
   const [channelFilter, setChannelFilter] = useState("all");
   const [inAppConvos, setInAppConvos] = useState<InAppConversation[]>(initialInAppConversations);
-  const [selectedInApp, setSelectedInApp] = useState<InAppConversation>(initialInAppConversations[0]);
-  const [selectedExternal, setSelectedExternal] = useState<ExternalConversation>(externalConversations[0]);
+  const [selectedInApp, setSelectedInApp] = useState<InAppConversation | null>(initialInAppConversations[0] || null);
+  const [selectedExternal, setSelectedExternal] = useState<ExternalConversation | null>(externalConversations[0] || null);
   const [newChatOpen, setNewChatOpen] = useState(false);
   const [newChatType, setNewChatType] = useState<"direct" | "group">("direct");
   const [newChatName, setNewChatName] = useState("");
