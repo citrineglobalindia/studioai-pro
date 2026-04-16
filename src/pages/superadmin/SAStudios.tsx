@@ -46,6 +46,7 @@ export default function SAStudios() {
   const [subscriptions, setSubscriptions] = useState<any[]>([]);
   const [plans, setPlans] = useState<Record<string, string>>({});
   const [analytics, setAnalytics] = useState<Record<string, OrgAnalytics>>({});
+  const [restrictions, setRestrictions] = useState<Record<string, { disabledRoles: string[]; restrictedModules: string[] }>>({});
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "active" | "trial" | "inactive">("all");
   const [loading, setLoading] = useState(true);
