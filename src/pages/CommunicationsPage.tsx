@@ -321,6 +321,15 @@ export default function CommunicationsPage() {
 
               {/* Chat Area */}
               <div className="flex-1 flex flex-col min-w-0">
+                {!selectedInApp ? (
+                  <div className="flex-1 flex items-center justify-center text-muted-foreground">
+                    <div className="text-center">
+                      <MessageSquare className="h-12 w-12 mx-auto mb-3 opacity-30" />
+                      <p className="text-sm">No conversations yet</p>
+                      <p className="text-xs mt-1">Start a new chat to begin messaging</p>
+                    </div>
+                  </div>
+                ) : (<>
                 {/* Chat Header */}
                 <div className="p-4 border-b border-border flex items-center justify-between bg-card">
                   <div className="flex items-center gap-3">
@@ -467,6 +476,7 @@ export default function CommunicationsPage() {
                     </Button>
                   </div>
                 </div>
+              </>)}
               </div>
             </div>
           </TabsContent>
@@ -498,7 +508,7 @@ export default function CommunicationsPage() {
                     <div
                       key={conv.id}
                       onClick={() => setSelectedExternal(conv)}
-                      className={`p-3 cursor-pointer transition-colors ${selectedExternal.id === conv.id ? "bg-primary/5 border-l-2 border-l-primary" : "hover:bg-muted/30"}`}
+                      className={`p-3 cursor-pointer transition-colors ${selectedExternal?.id === conv.id ? "bg-primary/5 border-l-2 border-l-primary" : "hover:bg-muted/30"}`}
                     >
                       <div className="flex items-center justify-between mb-1">
                         <div className="flex items-center gap-2">
@@ -520,6 +530,14 @@ export default function CommunicationsPage() {
 
               {/* Chat Area */}
               <div className="flex-1 flex flex-col min-w-0">
+                {!selectedExternal ? (
+                  <div className="flex-1 flex items-center justify-center text-muted-foreground">
+                    <div className="text-center">
+                      <Mail className="h-12 w-12 mx-auto mb-3 opacity-30" />
+                      <p className="text-sm">No external conversations</p>
+                    </div>
+                  </div>
+                ) : (<>
                 <div className="p-4 border-b border-border flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-9 w-9">
@@ -559,6 +577,7 @@ export default function CommunicationsPage() {
                   <Input placeholder="Type a message..." className="flex-1" />
                   <Button size="icon" className="shrink-0"><Send className="h-4 w-4" /></Button>
                 </div>
+              </>)}
               </div>
             </div>
           </TabsContent>
